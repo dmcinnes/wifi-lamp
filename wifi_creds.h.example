@@ -1,0 +1,4 @@
+// WiFi network (change with your settings !)
+#define WLAN_SSID       "YOUR SSID"        // cannot be longer than 32 characters!
+#define WLAN_PASS       "YOUR PASSWORD"
+#define WLAN_SECURITY   WLAN_SEC_WPA2 // This can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
