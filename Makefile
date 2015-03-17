@@ -13,5 +13,3 @@ BOARD = 644pa16m
 ISP_PORT = /dev/ttyACM*
 
 include $(ARDMK_DIR)/Arduino.mk
-
-# !!! Important. You have to use make ispload to upload when using ISP programmer
