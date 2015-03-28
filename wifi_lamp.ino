@@ -2,6 +2,7 @@
 #include <SPI.h>
 #include "utility/debug.h"
 #include "utility/socket.h"
+#include "LPD8806.h"
 #include "wifi_creds.h"
 
 // These are the interrupt and control pins
@@ -33,6 +34,12 @@ Adafruit_CC3000 cc3000 = Adafruit_CC3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ
                                      // an incoming request to finish.  Don't set this
                                      // too high or your server could be slow to respond.
 
+#define LED_COUNT             16
+#define LED_DATA_PIN          6
+#define LED_CLOCK_PIN         7
+
+LPD8806 strip = LPD8806(LED_COUNT, LED_DATA_PIN, LED_CLOCK_PIN);
+
 Adafruit_CC3000_Server httpServer(LISTEN_PORT);
 uint8_t buffer[BUFFER_SIZE+1];
 int bufindex = 0;
@@ -40,17 +47,13 @@ char action[MAX_ACTION+1];
 char path[MAX_PATH+1];
 
 // Tries to read the IP address and other connection details
-bool displayConnectionDetails(void)
-{
+bool displayConnectionDetails(void) {
   uint32_t ipAddress, netmask, gateway, dhcpserv, dnsserv;
 
-  if(!cc3000.getIPAddress(&ipAddress, &netmask, &gateway, &dhcpserv, &dnsserv))
-  {
+  if(!cc3000.getIPAddress(&ipAddress, &netmask, &gateway, &dhcpserv, &dnsserv)) {
     Serial.println(F("Unable to retrieve the IP Address!\r\n"));
     return false;
-  }
-  else
-  {
+  } else {
     Serial.print(F("\nIP Addr: ")); cc3000.printIPdotsRev(ipAddress);
     Serial.print(F("\nNetmask: ")); cc3000.printIPdotsRev(netmask);
     Serial.print(F("\nGateway: ")); cc3000.printIPdotsRev(gateway);
@@ -59,55 +62,6 @@ bool displayConnectionDetails(void)
     Serial.println();
     return true;
   }
-}
-
-void setup(void)
-{
-  Serial.begin(115200);
-  Serial.println(F("Hello, CC3000!\n"));
-
-  Serial.print("Free RAM: "); Serial.println(getFreeRam(), DEC);
-
-  // Initialise the module
-  Serial.println(F("\nInitializing..."));
-  if (!cc3000.begin())
-  {
-    Serial.println(F("Couldn't begin()! Check your wiring?"));
-    while(1);
-  }
-
-  Serial.print(F("\nAttempting to connect to ")); Serial.println(WLAN_SSID);
-  if (!cc3000.connectToAP(WLAN_SSID, WLAN_PASS, WLAN_SECURITY)) {
-    Serial.println(F("Failed!"));
-    while(1);
-  }
-
-  Serial.println(F("Connected!"));
-
-  Serial.println(F("Request DHCP"));
-  while (!cc3000.checkDHCP())
-  {
-    delay(100); // ToDo: Insert a DHCP timeout!
-  }
-
-  // Display the IP address DNS, Gateway, etc.
-  while (! displayConnectionDetails()) {
-    delay(1000);
-  }
-
-  // ******************************************************
-  // You can safely remove this to save some flash memory!
-  // ******************************************************
-  Serial.println(F("\r\nNOTE: This sketch may cause problems with other sketches"));
-  Serial.println(F("since the .disconnect() function is never called, so the"));
-  Serial.println(F("AP may refuse connection requests from the CC3000 until a"));
-  Serial.println(F("timeout period passes.  This is normal behaviour since"));
-  Serial.println(F("there isn't an obvious moment to disconnect with a server.\r\n"));
-
-  // Start listening for connections
-  httpServer.begin();
-
-  Serial.println(F("Listening for connections..."));
 }
 
 // Parse the action and path from the first line of an HTTP request.
@@ -143,11 +97,78 @@ bool parseRequest(uint8_t* buf, int bufSize, char* action, char* path) {
   return false;
 }
 
+void monitor(void) {
+  Serial.begin(115200);
+
+  Serial.println(F("Hello, CC3000!\n"));
+
+  Serial.print("Free RAM: "); Serial.println(getFreeRam(), DEC);
+
+  while (! displayConnectionDetails()) {
+    delay(1000);
+  }
+}
+
+void connect(void) {
+  strip.setPixelColor(0, 0, 0, 1);
+  strip.show();
+
+  if (!cc3000.begin()) {
+    strip.setPixelColor(0, 1, 0, 0);
+    strip.show();
+    // failed to begin
+    while(1);
+  }
+
+  strip.setPixelColor(1, 0, 0, 1);
+  strip.show();
+
+  if (!cc3000.connectToAP(WLAN_SSID, WLAN_PASS, WLAN_SECURITY)) {
+    strip.setPixelColor(1, 1, 0, 0);
+    strip.show();
+    // failed
+    while(1);
+  }
+
+  strip.setPixelColor(2, 0, 0, 1);
+  strip.show();
+
+  while (!cc3000.checkDHCP())
+  {
+    strip.setPixelColor(2, 0, 0, 0);
+    strip.show();
+    delay(500); // ToDo: Insert a DHCP timeout!
+    strip.setPixelColor(2, 0, 0, 1);
+    strip.show();
+  }
+
+  strip.setPixelColor(3, 0, 0, 1);
+  strip.show();
+
+  // Start listening for connections
+  httpServer.begin();
+}
+
+void setup(void) {
+  // Start up the LED strip
+  strip.begin();
+
+  // Update the strip, to start they are all 'off'
+  strip.show();
+
+  connect();
+  /* monitor(); */
+}
+
 void loop(void) {
+  strip.setPixelColor(0, 1, 1, 0);
+  strip.show();
+
   // Try to get a client which is connected.
   Adafruit_CC3000_ClientRef client = httpServer.available();
   if (client) {
-    Serial.println(F("Client connected."));
+    strip.setPixelColor(0, 0, 1, 0);
+    strip.show();
     // Process this request until it completes or times out.
     // Note that this is explicitly limited to handling one request at a time!
 
@@ -171,13 +192,15 @@ void loop(void) {
       parsed = parseRequest(buffer, bufindex, action, path);
     }
 
+    strip.setPixelColor(1, 0, 1, 0);
+    strip.show();
+
     // Handle the request if it was parsed.
     if (parsed) {
-      Serial.println(F("Processing request"));
-      Serial.print(F("Action: ")); Serial.println(action);
-      Serial.print(F("Path: ")); Serial.println(path);
       // Check the action to see if it was a GET request.
       if (strcmp(action, "GET") == 0) {
+        strip.setPixelColor(2, 0, 1, 0);
+        strip.show();
         // Respond with the path that was accessed.
         // First send the success response code.
         client.fastrprintln(F("HTTP/1.1 200 OK"));
@@ -199,12 +222,23 @@ void loop(void) {
       }
     }
 
+    strip.setPixelColor(3, 0, 1, 0);
+    strip.show();
+
     // Wait a short period to make sure the response had time to send before
     // the connection is closed (the CC3000 sends data asyncronously).
     delay(100);
 
     // Close the connection when done.
-    Serial.println(F("Client disconnected"));
     client.close();
   }
+
+  delay(100);
+
+  for (int i=0; i < strip.numPixels(); i++) {
+    strip.setPixelColor(i, 0, 0, 0);
+  }
+  strip.show();
+
+  delay(100);
 }
