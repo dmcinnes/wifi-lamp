@@ -60,14 +60,15 @@ void setup(void) {
   randomSeed(analogRead(0));
 }
 
-unsigned int bubbleUpdateOn[] = {0, 0, 0};
-unsigned int bubbleTimers[]   = {0, 0, 0};
-unsigned int bubbleLeds[]     = {0, 0, 0};
+const unsigned int bubbleCount = 5;
+unsigned int bubbleUpdateOn[] = {0, 0, 0, 0, 0};
+unsigned int bubbleTimers[]   = {0, 0, 0, 0, 0};
+unsigned int bubbleLeds[]     = {0, 0, 0, 0, 0};
 void bubble(unsigned long delta) {
   bool show = false;
   unsigned int i, led, color;
 
-  for (i = 0; i < 3; i++) {
+  for (i = 0; i < bubbleCount; i++) {
     if (bubbleUpdateOn[i] == 0) {
       bubbleUpdateOn[i] = random(30, 150);
     }
