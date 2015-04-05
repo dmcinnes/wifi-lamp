@@ -57,24 +57,39 @@ void setup(void) {
   strip.show();
 
   lastMillis = millis();
+  randomSeed(analogRead(0));
 }
 
-unsigned int led = 0;
-unsigned long lastUpdate = 0;
+unsigned int bubbleUpdateOn[] = {0, 0, 0};
+unsigned int bubbleTimers[]   = {0, 0, 0};
+unsigned int bubbleLeds[]     = {0, 0, 0};
 void bubble(unsigned long delta) {
-  lastUpdate += delta;
+  unsigned int i, led;
 
-  if (lastUpdate > 70) {
-    lastUpdate -= 70;
-
-    strip.setPixelColor(led, 0, 0, 0);
-    led++;
-    if (led > 15) {
-      led = 0;
+  for (i = 0; i < 3; i++) {
+    if (bubbleUpdateOn[i] == 0) {
+      bubbleUpdateOn[i] = random(30, 150);
     }
-    strip.setPixelColor(led, 0, 0, 1);
-    strip.show();
+
+    bubbleTimers[i] += delta;
+
+    if (bubbleTimers[i] > bubbleUpdateOn[i]) {
+      bubbleTimers[i] -= bubbleUpdateOn[i];
+      led = bubbleLeds[i];
+      strip.setPixelColor(led, 0, 0, 0);
+      led++;
+      if (led < LED_COUNT) {
+        strip.setPixelColor(led, 0, 0, 1);
+        bubbleLeds[i] = led;
+      } else {
+        // reset
+        bubbleLeds[i]     = 0;
+        bubbleUpdateOn[i] = 0;
+        bubbleTimers[i]   = 0;
+      }
+    }
   }
+  strip.show();
 }
 
 void loop(void) {
