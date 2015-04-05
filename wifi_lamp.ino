@@ -60,6 +60,31 @@ void setup(void) {
   randomSeed(analogRead(0));
 }
 
+// Input a value 0 to 384 to get a color value.
+// The colours are a transition r - g -b - back to r
+
+uint32_t Wheel(uint16_t WheelPos) {
+  byte r, g, b;
+  switch(WheelPos / 128) {
+    case 0:
+      r = 127 - WheelPos % 128; // Red down
+      g = WheelPos % 128;       // Green up
+      b = 0;                    // blue off
+      break;
+    case 1:
+      g = 127 - WheelPos % 128; // green down
+      b = WheelPos % 128;       // blue up
+      r = 0;                    // red off
+      break;
+    case 2:
+      b = 127 - WheelPos % 128; // blue down
+      r = WheelPos % 128;       // red up
+      g = 0;                    // green off
+      break;
+  }
+  return(strip.Color(r,g,b));
+}
+
 const unsigned int bubbleCount = 5;
 unsigned int bubbleUpdateOn[] = {0, 0, 0, 0, 0};
 unsigned int bubbleTimers[]   = {0, 0, 0, 0, 0};
@@ -98,6 +123,25 @@ void bubble(unsigned long delta) {
   }
 }
 
+unsigned int rainbowOffset  = 0;
+unsigned int rainbowTimeout = 0;
+void rainbow(unsigned long delta) {
+  unsigned int i;
+
+  rainbowTimeout += delta;
+  if (rainbowTimeout > 10) {
+    rainbowTimeout -= 10;
+    rainbowOffset++;
+    if (rainbowOffset > 384) {
+      rainbowOffset = 0;
+    }
+    for (i=0; i < LED_COUNT; i++) {
+      strip.setPixelColor(i, Wheel( (i + rainbowOffset) % 384));
+    }
+    strip.show();
+  }
+}
+
 void loop(void) {
   unsigned long currentMillis = millis();
   unsigned long delta = currentMillis - lastMillis;
@@ -105,5 +149,6 @@ void loop(void) {
 
   server.handleClient();
 
-  bubble(delta);
+  /* bubble(delta); */
+  rainbow(delta);
 }
