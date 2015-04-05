@@ -64,7 +64,8 @@ unsigned int bubbleUpdateOn[] = {0, 0, 0};
 unsigned int bubbleTimers[]   = {0, 0, 0};
 unsigned int bubbleLeds[]     = {0, 0, 0};
 void bubble(unsigned long delta) {
-  unsigned int i, led;
+  bool show = false;
+  unsigned int i, led, color;
 
   for (i = 0; i < 3; i++) {
     if (bubbleUpdateOn[i] == 0) {
@@ -79,7 +80,8 @@ void bubble(unsigned long delta) {
       strip.setPixelColor(led, 0, 0, 0);
       led++;
       if (led < LED_COUNT) {
-        strip.setPixelColor(led, 0, 0, 1);
+        color = strip.getPixelColor(led) & 0x7f;
+        strip.setPixelColor(led, 0, 0, color + 20);
         bubbleLeds[i] = led;
       } else {
         // reset
@@ -87,9 +89,12 @@ void bubble(unsigned long delta) {
         bubbleUpdateOn[i] = 0;
         bubbleTimers[i]   = 0;
       }
+      show = true;
     }
   }
-  strip.show();
+  if (show) {
+    strip.show();
+  }
 }
 
 void loop(void) {
