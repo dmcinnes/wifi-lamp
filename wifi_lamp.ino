@@ -11,6 +11,8 @@ ESP8266WebServer server(80);
 #define DATA_PIN  0
 #define CLOCK_PIN 2
 
+unsigned long lastMillis;
+
 LPD8806 strip = LPD8806(LED_COUNT, DATA_PIN, CLOCK_PIN);
 
 void handle_root() {
@@ -21,15 +23,15 @@ void handle_root() {
 }
 
 void setup(void) {
-  strip.begin();
-
-  strip.show();
-
   Serial.begin(115200);
 
   // Connect to WiFi network
   WiFi.begin(WLAN_SSID, WLAN_PASS);
   Serial.println("");
+
+  strip.begin();
+
+  strip.show();
 
   // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
@@ -53,8 +55,34 @@ void setup(void) {
 
   strip.setPixelColor(0, 0, 0, 1);
   strip.show();
+
+  lastMillis = millis();
+}
+
+unsigned int led = 0;
+unsigned long lastUpdate = 0;
+void bubble(unsigned long delta) {
+  lastUpdate += delta;
+
+  if (lastUpdate > 70) {
+    lastUpdate -= 70;
+
+    strip.setPixelColor(led, 0, 0, 0);
+    led++;
+    if (led > 15) {
+      led = 0;
+    }
+    strip.setPixelColor(led, 0, 0, 1);
+    strip.show();
+  }
 }
 
 void loop(void) {
+  unsigned long currentMillis = millis();
+  unsigned long delta = currentMillis - lastMillis;
+  lastMillis = currentMillis;
+
   server.handleClient();
+
+  bubble(delta);
 }
