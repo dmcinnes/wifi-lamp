@@ -4,6 +4,9 @@
 #include "LPD8806.h"
 #include "wifi_creds.h"
 
+typedef void (*lampAction)(unsigned long);
+lampAction currentLampAction;
+
 ESP8266WebServer server(80);
 
 #define LED_COUNT 16
@@ -58,12 +61,14 @@ void setup(void) {
 
   lastMillis = millis();
   randomSeed(analogRead(0));
+
+  currentLampAction = &bubble;
 }
 
 // Input a value 0 to 384 to get a color value.
 // The colours are a transition r - g -b - back to r
 
-uint32_t Wheel(uint16_t WheelPos) {
+uint32_t wheel(uint16_t WheelPos) {
   byte r, g, b;
   switch(WheelPos / 128) {
     case 0:
@@ -123,7 +128,7 @@ void bubble(unsigned long delta) {
   }
 }
 
-const unsigned int rainbowDelay = 30;
+const unsigned int rainbowDelay = 50;
 unsigned int rainbowOffset  = 0;
 unsigned int rainbowTimeout = 0;
 void rainbow(unsigned long delta) {
@@ -137,7 +142,7 @@ void rainbow(unsigned long delta) {
       rainbowOffset = 0;
     }
     for (i=0; i < LED_COUNT; i++) {
-      strip.setPixelColor(i, Wheel( (i + rainbowOffset) % 384));
+      strip.setPixelColor(i, wheel( (i + rainbowOffset) % 384));
     }
     strip.show();
   }
@@ -148,10 +153,9 @@ void loop(void) {
   unsigned long delta = currentMillis - lastMillis;
   lastMillis = currentMillis;
 
-  server.handleClient();
+  (*currentLampAction)(delta);
 
-  /* bubble(delta); */
-  rainbow(delta);
+  server.handleClient();
 
   // let the WIFI stack do its thing
   yield();
