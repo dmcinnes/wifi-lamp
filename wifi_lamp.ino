@@ -18,11 +18,24 @@ unsigned long lastMillis;
 
 LPD8806 strip = LPD8806(LED_COUNT, DATA_PIN, CLOCK_PIN);
 
-void handle_root() {
-  server.send(200, "text/plain", "hello from esp8266!");
+void OK() {
+  server.send(200, "text/plain", "OK");
+}
 
-  strip.setPixelColor(1, 1, 0, 0);
-  strip.show();
+void setupServer() {
+  server.on("/", []() {
+    server.send(200, "text/plain", "Hello from esp8266!");
+  });
+
+  server.on("/bubble", HTTP_POST, [](){
+    currentLampAction = &bubble;
+    OK();
+  });
+
+  server.on("/rainbow", HTTP_POST, [](){
+    currentLampAction = &rainbow;
+    OK();
+  });
 }
 
 void setup(void) {
@@ -47,11 +60,7 @@ void setup(void) {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  server.on("/", handle_root);
-
-  server.on("/inline", [](){
-    server.send(200, "text/plain", "this works as well");
-  });
+  setupServer();
 
   server.begin();
   Serial.println("HTTP server started");
