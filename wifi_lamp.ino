@@ -109,7 +109,6 @@ void bubble(unsigned long delta) {
       bubbleTimers[i] -= bubbleUpdateOn[i];
       led = bubbleLeds[i];
       strip.setPixelColor(led, 0, 0, 0);
-      led++;
       if (led < LED_COUNT) {
         color = strip.getPixelColor(led) & 0x7f;
         strip.setPixelColor(led, 0, 0, color + 20);
@@ -120,6 +119,7 @@ void bubble(unsigned long delta) {
         bubbleUpdateOn[i] = 0;
         bubbleTimers[i]   = 0;
       }
+      led++;
       show = true;
     }
   }
