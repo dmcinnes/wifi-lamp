@@ -123,14 +123,15 @@ void bubble(unsigned long delta) {
   }
 }
 
+const unsigned int rainbowDelay = 30;
 unsigned int rainbowOffset  = 0;
 unsigned int rainbowTimeout = 0;
 void rainbow(unsigned long delta) {
   unsigned int i;
 
   rainbowTimeout += delta;
-  if (rainbowTimeout > 10) {
-    rainbowTimeout -= 10;
+  if (rainbowTimeout > rainbowDelay) {
+    rainbowTimeout -= rainbowDelay;
     rainbowOffset++;
     if (rainbowOffset > 384) {
       rainbowOffset = 0;
