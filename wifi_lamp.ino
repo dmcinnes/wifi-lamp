@@ -152,4 +152,7 @@ void loop(void) {
 
   /* bubble(delta); */
   rainbow(delta);
+
+  // let the WIFI stack do its thing
+  yield();
 }
