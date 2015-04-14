@@ -1,0 +1,15 @@
+# Arduino Make file. Refer to https://github.com/sudar/Arduino-Makefile
+
+ARDMK_DIR = /usr/local/opt/arduino-mk
+
+# if you have placed the alternate core in your sketchbook directory, then you can just mention the core name alone.
+ALTERNATE_CORE = attiny
+# If not, you might have to include the full path.
+# ALTERNATE_CORE_PATH = /Users/doug/Documents/Arduino/hardware/attiny
+
+BOARD_TAG = attiny85-8
+ISP_PROG = usbtiny
+
+include $(ARDMK_DIR)/Arduino.mk
+
+# !!! Important. You have to use make ispload to upload when using ISP programmer
