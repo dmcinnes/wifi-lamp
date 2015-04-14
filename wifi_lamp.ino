@@ -1,7 +1,8 @@
+#include <SPI.h>
+#include <LPD8806.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include "LPD8806.h"
 #include "wifi_creds.h"
 
 typedef void (*lampAction)(unsigned long);
@@ -11,8 +12,8 @@ ESP8266WebServer server(80);
 
 #define LED_COUNT 16
 
-#define DATA_PIN  0
-#define CLOCK_PIN 2
+#define DATA_PIN  2
+#define CLOCK_PIN 0
 
 unsigned long lastMillis;
 
