@@ -12,16 +12,6 @@ unsigned long lastMillis;
 
 LPD8806 strip = LPD8806(LED_COUNT, DATA_PIN, CLOCK_PIN);
 
-void setup(void) {
-  strip.begin();
-  strip.show();
-
-  lastMillis = millis();
-  randomSeed(analogRead(0));
-
-  currentLampAction = &bubble;
-}
-
 // Input a value 0 to 384 to get a color value.
 // The colours are a transition r - g -b - back to r
 
@@ -104,6 +94,16 @@ void rainbow(unsigned long delta) {
     }
     strip.show();
   }
+}
+
+void setup(void) {
+  strip.begin();
+  strip.show();
+
+  lastMillis = millis();
+  randomSeed(analogRead(0));
+
+  currentLampAction = &bubble;
 }
 
 void loop(void) {
