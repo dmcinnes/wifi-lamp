@@ -13,6 +13,7 @@ unsigned long lastMillis;
 LPD8806 strip = LPD8806(LED_COUNT, DATA_PIN, CLOCK_PIN);
 
 void setup(void) {
+  strip.begin();
   strip.show();
 
   lastMillis = millis();
