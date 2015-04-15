@@ -101,9 +101,9 @@ void setup(void) {
   strip.show();
 
   lastMillis = millis();
-  randomSeed(analogRead(0));
+  randomSeed(analogRead(2));
 
-  currentLampAction = &bubble;
+  currentLampAction = &rainbow;
 }
 
 void loop(void) {
