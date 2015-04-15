@@ -7,7 +7,7 @@ ALTERNATE_CORE = attiny
 # If not, you might have to include the full path.
 # ALTERNATE_CORE_PATH = /Users/doug/Documents/Arduino/hardware/attiny
 
-BOARD_TAG = attiny85-8
+BOARD_TAG = attiny85
 ISP_PROG = usbtiny
 
 include $(ARDMK_DIR)/Arduino.mk
