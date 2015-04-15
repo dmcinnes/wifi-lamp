@@ -1,16 +1,18 @@
 #include <LPD8806.h>
+#include <tinySPI.h>
 
 #define LED_COUNT 16
+#define LED_DATA_PIN  3
+#define LED_CLOCK_PIN 4
 
-#define DATA_PIN  3
-#define CLOCK_PIN 4
+#define HARDWARE_SPI 1
 
 typedef void (*lampAction)(unsigned long);
 lampAction currentLampAction;
 
 unsigned long lastMillis;
 
-LPD8806 strip = LPD8806(LED_COUNT, DATA_PIN, CLOCK_PIN);
+LPD8806 strip = LPD8806(LED_COUNT, LED_DATA_PIN, LED_CLOCK_PIN);
 
 // Input a value 0 to 384 to get a color value.
 // The colours are a transition r - g -b - back to r
@@ -103,7 +105,9 @@ void setup(void) {
   lastMillis = millis();
   randomSeed(analogRead(2));
 
-  currentLampAction = &rainbow;
+  currentLampAction = &bubble;
+
+  SPI.begin();
 }
 
 void loop(void) {
@@ -112,4 +116,11 @@ void loop(void) {
   lastMillis = currentMillis;
 
   (*currentLampAction)(delta);
+
+  uint8_t byte = 0x00;
+
+  byte = SPI.transfer(byte);
+  if (byte > 0x00) {
+    currentLampAction = &rainbow;
+  }
 }
