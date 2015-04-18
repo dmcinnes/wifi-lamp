@@ -24,10 +24,12 @@ void setupServer() {
   });
 
   server.on("/bubble", HTTP_POST, [](){
+    nextChar = 'B';
     OK();
   });
 
   server.on("/rainbow", HTTP_POST, [](){
+    nextChar = 'R';
     OK();
   });
 }
