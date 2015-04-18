@@ -120,7 +120,16 @@ void loop(void) {
   uint8_t byte = 0x00;
 
   byte = SPI.transfer(byte);
-  if (byte > 0x00) {
-    currentLampAction = &rainbow;
+  if (byte == 0x00) {
+
+    byte = SPI.transfer(byte);
+    switch (byte) {
+      case 0x42: // B
+        currentLampAction = &bubble;
+        break;
+      case 0x52: // R
+        currentLampAction = &rainbow;
+        break;
+    }
   }
 }
