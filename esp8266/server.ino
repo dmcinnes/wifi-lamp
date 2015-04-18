@@ -3,6 +3,15 @@
 #include <ESP8266WebServer.h>
 #include "wifi_creds.h"
 
+#define DATA_PIN  0
+#define CLOCK_PIN 2
+
+
+uint8_t  nextChar  = 0x80;
+uint16_t spiBuffer = 0x8080;
+uint16_t spiBit    = 0x8000;
+
+
 ESP8266WebServer server(80);
 
 void OK() {
@@ -21,6 +30,27 @@ void setupServer() {
   server.on("/rainbow", HTTP_POST, [](){
     OK();
   });
+}
+
+void spiClock() {
+  if (digitalRead(CLOCK_PIN) == HIGH) {
+    if (spiBuffer & spiBit) {
+      digitalWrite(DATA_PIN, HIGH);
+    } else {
+      digitalWrite(DATA_PIN, LOW);
+    }
+
+    if (spiBit > 0x00) {
+      spiBit >>= 1;
+    } else {
+      if (nextChar != 0x80) {
+        spiBuffer = nextChar;
+      } else {
+        spiBuffer = 0x8080;
+      }
+      nextChar = 0x80;
+    }
+  }
 }
 
 void setup(void) {
@@ -45,6 +75,12 @@ void setup(void) {
 
   server.begin();
   Serial.println("HTTP server started");
+
+  // let the attiny85 drive the clock
+  pinMode(CLOCK_PIN, INPUT);
+  pinMode(DATA_PIN, OUTPUT);
+
+  attachInterrupt(CLOCK_PIN, spiClock, CHANGE);
 }
 
 void loop(void) {
