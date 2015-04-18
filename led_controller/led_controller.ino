@@ -5,8 +5,6 @@
 #define LED_DATA_PIN  3
 #define LED_CLOCK_PIN 4
 
-#define HARDWARE_SPI 1
-
 typedef void (*lampAction)(unsigned long);
 lampAction currentLampAction;
 
