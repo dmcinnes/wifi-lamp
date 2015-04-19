@@ -37,6 +37,11 @@ void setupServer() {
     currentLampAction = &rainbow;
     OK();
   });
+
+  server.on("/rainbow-cycle", HTTP_POST, [](){
+    currentLampAction = &rainbowCycle;
+    OK();
+  });
 }
 
 void setup(void) {
@@ -156,6 +161,28 @@ void rainbow(unsigned long delta) {
       strip.setPixelColor(i, wheel( (i + rainbowOffset) % 384));
     }
     strip.show();
+  }
+}
+
+void rainbowCycle(unsigned long delta) {
+  uint16_t i, j;
+
+  rainbowTimeout += delta;
+  if (rainbowTimeout > rainbowDelay) {
+    rainbowTimeout -= rainbowDelay;
+    rainbowOffset++;
+    if (rainbowOffset > 384) {
+      rainbowOffset = 0;
+    }
+
+    for (i=0; i < strip.numPixels(); i++) {
+      // tricky math! we use each pixel as a fraction of the full 384-color wheel
+      // (thats the i / strip.numPixels() part)
+      // Then add in j which makes the colors go around per pixel
+      // the % 384 is to make the wheel cycle around
+      strip.setPixelColor(i, wheel( ((i * 384 / LED_COUNT) + rainbowOffset) % 384) );
+    }
+    strip.show();   // write all the pixels out
   }
 }
 
