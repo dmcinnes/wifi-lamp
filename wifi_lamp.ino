@@ -144,6 +144,8 @@ void bubble(unsigned long delta) {
   }
 }
 
+// a few from Adafruit's strandtest
+
 const unsigned int rainbowDelay = 50;
 unsigned int rainbowOffset  = 0;
 unsigned int rainbowTimeout = 0;
