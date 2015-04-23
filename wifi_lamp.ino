@@ -42,6 +42,15 @@ void setupServer() {
     currentLampAction = &rainbowCycle;
     OK();
   });
+
+  server.on("/red", HTTP_POST, [](){
+    for (unsigned int i=0; i < LED_COUNT; i++) {
+      strip.setPixelColor(i, wheel(0));
+    }
+    strip.show();
+    currentLampAction = &none;
+    OK();
+  });
 }
 
 void setup(void) {
@@ -71,13 +80,10 @@ void setup(void) {
   server.begin();
   Serial.println("HTTP server started");
 
-  strip.setPixelColor(0, 0, 0, 1);
-  strip.show();
-
   lastMillis = millis();
   randomSeed(analogRead(0));
 
-  currentLampAction = &bubble;
+  currentLampAction = &none;
 }
 
 // Input a value 0 to 384 to get a color value.
@@ -186,6 +192,9 @@ void rainbowCycle(unsigned long delta) {
     }
     strip.show();   // write all the pixels out
   }
+}
+
+void none(unsigned long delta) {
 }
 
 void loop(void) {
