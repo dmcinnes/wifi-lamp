@@ -12,8 +12,8 @@ ESP8266WebServer server(80);
 
 #define LED_COUNT 16
 
-#define DATA_PIN  2
-#define CLOCK_PIN 0
+#define DATA_PIN  0
+#define CLOCK_PIN 2
 
 unsigned long lastMillis;
 
@@ -83,7 +83,7 @@ void setup(void) {
   lastMillis = millis();
   randomSeed(analogRead(0));
 
-  currentLampAction = &none;
+  currentLampAction = &rainbowCycle;
 }
 
 // Input a value 0 to 384 to get a color value.
