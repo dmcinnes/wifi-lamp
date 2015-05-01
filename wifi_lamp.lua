@@ -27,7 +27,7 @@ function parseHeaders(payload)
   local headers = {}
   local query = false
   local header, value
-  for line in payload:gmatch("([^\n\r]+)") do
+  for line in payload:gmatch("([^\r\n]+)") do
     if not query then
       query = line
     else
@@ -40,7 +40,7 @@ function parseHeaders(payload)
 end
 
 function response(conn, code)
-  conn:send("HTTP/1.1 "..code.."\n\n")
+  conn:send("HTTP/1.1 "..code.."\r\n")
 end
 
 function ok(conn)
