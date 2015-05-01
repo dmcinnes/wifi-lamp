@@ -1,26 +1,25 @@
 server = net.createServer(net.TCP)
 server:listen(80,function(conn)
   conn:on("receive", function(conn, payload)
-    print(payload)
-    conn:send("HTTP/1.1 200 OK\n\n")
-    if payload:find("^PUT") or payload:find("^POST") then
+    if payload:match("^PUT") or payload:match("^POST") then
       local query, headers = parseHeaders(payload)
       print("Query: "..query)
       for header,value in pairs(headers) do
         print(header.."="..value)
       end
-      if headers["Expect"] == "100-continue" then
-        continue(conn)
+
+      if headers["Expect"]:match("^100") then
+        response(conn, '100 Continue')
       else
         ok(conn)
+        close(conn)
       end
     else
+      print(payload)
       print('data?')
-      ok(conn)
+      response(conn, '201 Created')
+      close(conn)
     end
-  end)
-  conn:on("sent", function(conn)
-    conn:close()
   end)
 end)
 
@@ -40,10 +39,16 @@ function parseHeaders(payload)
   return query, headers
 end
 
-function ok(conn)
-  conn:send("HTTP/1.1 200 OK\n\n")
+function response(conn, code)
+  conn:send("HTTP/1.1 "..code.."\n\n")
 end
 
-function continue(conn)
-  conn:send("HTTP/1.1 100 Continue\n\n")
+function ok(conn)
+  response(conn, '200 OK')
+end
+
+function close(conn)
+  conn:on("sent", function(conn)
+    conn:close()
+  end)
 end
