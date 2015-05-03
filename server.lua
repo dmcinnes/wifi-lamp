@@ -1,42 +1,7 @@
-server = net.createServer(net.TCP)
-server:listen(80, function(conn)
-  local query, path, headers, total, filename, expect
+local S = {}
+local Server = S
 
-  conn:on("receive", function(conn, payload)
-    if payload:match("^PUT") or payload:match("^POST") then
-      query, path, headers = parseHeaders(payload)
-      print("Request: "..query)
-
-      expect = headers["Expect"]
-      if expect and expect:match("^100") then
-        total = tonumber(headers["Content-Length"])
-        filename = path:gsub('^/', '')
-        file.open(filename, 'w')
-        response(conn, '100 Continue')
-      else
-        ok(conn)
-        close(conn)
-      end
-    else
-      file.write(payload)
-      total = total - payload:len()
-      if total <= 0 then
-        file.close()
-        payload = nil
-        success, message = pcall(node.compile, filename)
-        if success then
-          response(conn, '201 Created')
-        else
-          response(conn, '422 Unprocessable Entity')
-          conn:send('\r\nCompile Failed: '..message..'\r\n')
-        end
-        close(conn)
-      end
-    end
-  end)
-end)
-
-function parseHeaders(payload)
+function S.parseHeaders(payload)
   local headers = {}
   local query = false
   local path, header, value
@@ -53,17 +18,57 @@ function parseHeaders(payload)
   return query, path, headers
 end
 
-function response(conn, code)
+function S.response(conn, code)
   print(code)
   conn:send("HTTP/1.1 "..code.."\r\n")
 end
 
-function ok(conn)
-  response(conn, '200 OK')
+function S.ok(conn)
+  S.response(conn, '200 OK')
 end
 
-function close(conn)
+function S.close(conn)
   conn:on("sent", function(conn)
     conn:close()
   end)
 end
+
+S.server = net.createServer(net.TCP)
+S.server:listen(80, function(conn)
+  local query, path, headers, total, filename, expect
+
+  conn:on("receive", function(conn, payload)
+    if payload:match("^PUT") or payload:match("^POST") then
+      query, path, headers = S.parseHeaders(payload)
+      print("Request: "..query)
+
+      expect = headers["Expect"]
+      if expect and expect:match("^100") then
+        total = tonumber(headers["Content-Length"])
+        filename = path:gsub('^/', '')
+        file.open(filename, 'w')
+        S.response(conn, '100 Continue')
+      else
+        ok(conn)
+        S.close(conn)
+      end
+    else
+      file.write(payload)
+      total = total - payload:len()
+      if total <= 0 then
+        file.close()
+        payload = nil -- clear out some memory
+        success, message = pcall(node.compile, filename)
+        if success then
+          S.response(conn, '201 Created')
+        else
+          S.response(conn, '422 Unprocessable Entity')
+          conn:send('\r\nCompile Failed: '..message..'\r\n')
+        end
+        S.close(conn)
+      end
+    end
+  end)
+end)
+
+return Server
