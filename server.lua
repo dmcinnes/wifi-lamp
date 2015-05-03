@@ -1,6 +1,8 @@
 local S = {}
 local Server = S
 
+S.commands = {}
+
 function S.parseHeaders(payload)
   local headers = {}
   local query = false
@@ -33,6 +35,10 @@ function S.close(conn)
   end)
 end
 
+function S.cmd(name, func)
+  S.commands[name] = func
+end
+
 S.server = net.createServer(net.TCP)
 S.server:listen(80, function(conn)
   local query, path, headers, total, filename, expect
@@ -40,16 +46,27 @@ S.server:listen(80, function(conn)
   conn:on("receive", function(conn, payload)
     if payload:match("^PUT") or payload:match("^POST") then
       query, path, headers = S.parseHeaders(payload)
+      filename = path:gsub('^/', '')
       print("Request: "..query)
 
       expect = headers["Expect"]
       if expect and expect:match("^100") then
         total = tonumber(headers["Content-Length"])
-        filename = path:gsub('^/', '')
         file.open(filename, 'w')
         S.response(conn, '100 Continue')
       else
-        ok(conn)
+        -- it's POST
+        if S.commands[filename] then
+          success, message = pcall(S.commands[filename])
+          if success then
+            S.ok(conn)
+          else
+            S.response(conn, '500 Server Error')
+            conn:send(message..'\r\n')
+          end
+        else
+          S.response(conn, '404 Not Found')
+        end
         S.close(conn)
       end
     else
@@ -57,7 +74,10 @@ S.server:listen(80, function(conn)
       total = total - payload:len()
       if total <= 0 then
         file.close()
-        payload = nil -- clear out some memory
+        -- clear out some memory
+        payload = nil
+        headers = nil
+        collectgarbage()
         success, message = pcall(node.compile, filename)
         if success then
           S.response(conn, '201 Created')
