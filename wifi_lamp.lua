@@ -8,7 +8,7 @@ server:listen(80,function(conn)
         print(header.."="..value)
       end
 
-      if headers["Expect"]:match("^100") then
+      if headers["Expect"] and headers["Expect"]:match("^100") then
         response(conn, '100 Continue')
       else
         ok(conn)
