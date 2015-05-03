@@ -1,24 +1,29 @@
 server = net.createServer(net.TCP)
-server:listen(80,function(conn)
+server:listen(80, function(conn)
+  local total, query, path, headers, expect
+
   conn:on("receive", function(conn, payload)
     if payload:match("^PUT") or payload:match("^POST") then
-      local query, headers = parseHeaders(payload)
-      print("Query: "..query)
-      for header,value in pairs(headers) do
-        print(header.."="..value)
-      end
+      query, path, headers = parseHeaders(payload)
+      print("Request: "..query)
 
-      if headers["Expect"] and headers["Expect"]:match("^100") then
+      expect = headers["Expect"]
+      if expect and expect:match("^100") then
+        total = tonumber(headers["Content-Length"])
+        file.open(path:gsub('^/', ''), 'w')
         response(conn, '100 Continue')
       else
         ok(conn)
         close(conn)
       end
     else
-      print(payload)
-      print('data?')
-      response(conn, '201 Created')
-      close(conn)
+      file.write(payload)
+      total = total - payload:len()
+      if total <= 0 then
+        file.close()
+        response(conn, '201 Created')
+        close(conn)
+      end
     end
   end)
 end)
@@ -26,20 +31,22 @@ end)
 function parseHeaders(payload)
   local headers = {}
   local query = false
-  local header, value
+  local path, header, value
   for line in payload:gmatch("([^\r\n]+)") do
     if not query then
       query = line
+      path  = query:match("(/[^ ]*)")
     else
       header = line:gsub(":.*$", "")
       value  = line:gsub("^[^:]*: ", "")
       headers[header] = value
     end
   end
-  return query, headers
+  return query, path, headers
 end
 
 function response(conn, code)
+  print(code)
   conn:send("HTTP/1.1 "..code.."\r\n")
 end
 
