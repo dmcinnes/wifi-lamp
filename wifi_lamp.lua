@@ -1,6 +1,6 @@
 server = net.createServer(net.TCP)
 server:listen(80, function(conn)
-  local total, query, path, headers, expect
+  local query, path, headers, total, filename, expect
 
   conn:on("receive", function(conn, payload)
     if payload:match("^PUT") or payload:match("^POST") then
@@ -10,7 +10,8 @@ server:listen(80, function(conn)
       expect = headers["Expect"]
       if expect and expect:match("^100") then
         total = tonumber(headers["Content-Length"])
-        file.open(path:gsub('^/', ''), 'w')
+        filename = path:gsub('^/', '')
+        file.open(filename, 'w')
         response(conn, '100 Continue')
       else
         ok(conn)
@@ -21,7 +22,14 @@ server:listen(80, function(conn)
       total = total - payload:len()
       if total <= 0 then
         file.close()
-        response(conn, '201 Created')
+        payload = nil
+        success, message = pcall(node.compile, filename)
+        if success then
+          response(conn, '201 Created')
+        else
+          response(conn, '422 Unprocessable Entity')
+          conn:send('\r\nCompile Failed: '..message..'\r\n')
+        end
         close(conn)
       end
     end
