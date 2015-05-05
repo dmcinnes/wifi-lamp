@@ -81,6 +81,8 @@ S.server:listen(80, function(conn)
         success, message = pcall(node.compile, filename)
         if success then
           S.response(conn, '201 Created')
+          -- remove the souce file to save room
+          file.remove(filename)
         else
           S.response(conn, '422 Unprocessable Entity')
           conn:send('\r\nCompile Failed: '..message..'\r\n')
