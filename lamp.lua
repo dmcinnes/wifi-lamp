@@ -1,7 +1,7 @@
-LPD8806 = require('LPD8806')
+local LPD8806 = require('LPD8806')
 
-led_count = 16
-lpd = LPD8806.new(led_count, 3, 4)
+local led_count = 16
+local lpd = LPD8806.new(led_count, 3, 4)
 lpd:show()
 
 -- Input a value 0 to 384 to get an rgb color value.
@@ -47,7 +47,23 @@ function rainbowCycle(delta)
   end
 end
 
+function blank(delta)
+end
+
 local currentFunc = rainbowCycle
+local commands = {'blank', 'rainbowCycle'}
+
+for _, commandName in ipairs(commands) do
+  Server.cmd(commandName, function ()
+    -- clear
+    for i=0, led_count-1 do
+      lpd:setPixelColor(i, 0, 0, 0)
+    end
+    lpd:show()
+    currentFunc = _G[commandName]
+  end)
+end
+
 local lastTime    = tmr.now()
 local currentTime
 tmr.alarm(0, 50, 1, function()
