@@ -1,8 +1,11 @@
 Server  = require 'server'
 require 'commands'
 
-if file.list()['program'] then
-  file.remove('program')
-else
+if not file.list()['program'] then
+  -- insurance policy
+  file.open('program', 'w')
+  file.close()
   require 'lamp'
 end
+
+file.remove('program')
