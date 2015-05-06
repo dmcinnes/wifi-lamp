@@ -4,8 +4,6 @@ led_count = 16
 lpd = LPD8806.new(led_count, 3, 4)
 lpd:show()
 
-require 'rainbow'
-
 -- Input a value 0 to 384 to get an rgb color value.
 function wheel(wheelPos)
   local r, g, b
@@ -26,22 +24,27 @@ function wheel(wheelPos)
   return r, g, b
 end
 
-
-local currentFunc = rainbowCycle
-local commands = {'blank', 'rainbow', 'rainbowCycle'}
-
-for _, commandName in ipairs(commands) do
-  Server.cmd(commandName, function ()
-    -- clear
-    for i=0, led_count-1 do
-      lpd:setPixelColor(i, 0, 0, 0)
-    end
-    lpd:show()
-    currentFunc = _G[commandName]
-  end)
+function clear()
+  for i=0, led_count-1 do
+    lpd:setPixelColor(i, 0, 0, 0)
+  end
+  lpd:show()
 end
 
-local lastTime    = tmr.now()
+function glamp(name, func)
+  Server.cmd(glamp, function ()
+    clear()
+    currentFunc = func
+  end)
+  -- set the default
+  currentFunc = func
+end
+
+glamp('blank', function (delta) end)
+
+require 'rainbow'
+
+local lastTime = tmr.now()
 local currentTime
 tmr.alarm(0, 50, 1, function()
   currentTime = tmr.now()

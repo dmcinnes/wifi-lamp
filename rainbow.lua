@@ -1,7 +1,8 @@
 local rainbowDelay   = 50;
 local rainbowOffset  = 0;
 local rainbowTimeout = 0;
-function rainbowCycle(delta)
+
+glamp('rainbow-cycle', function (delta)
   local i, j;
 
   rainbowTimeout = rainbowTimeout + delta
@@ -18,9 +19,9 @@ function rainbowCycle(delta)
 
     lpd:show() -- write all the pixels out
   end
-end
+end)
 
-function rainbow(delta)
+glamp('rainbow', function (delta)
   local i
 
   rainbowTimeout = rainbowTimeout + delta
@@ -35,7 +36,4 @@ function rainbow(delta)
     end
     lpd:show()
   end
-end
-
-function blank(delta)
-end
+end)
