@@ -73,6 +73,7 @@ S.server:listen(80, function(conn)
       file.write(payload)
       total = total - payload:len()
       if total <= 0 then
+        file.flush()
         file.close()
         -- clear out some memory
         payload = nil
