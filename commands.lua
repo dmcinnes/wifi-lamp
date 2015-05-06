@@ -11,3 +11,11 @@ Server.cmd('telnet', function ()
     require 'telnet'
   end)
 end)
+
+Server.cmd('program', function ()
+  file.open('program', 'w')
+  file.close()
+  tmr.alarm(0, 100, 0, function ()
+    node.restart()
+  end)
+end)
