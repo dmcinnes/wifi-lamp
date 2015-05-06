@@ -31,21 +31,29 @@ function clear()
   lpd:show()
 end
 
-function glamp(name, func)
-  Server.cmd(glamp, function ()
+function glamp(name)
+  Server.cmd(name, function()
     clear()
-    currentFunc = func
+    currentFunc = _G[name]
   end)
-  -- set the default
-  currentFunc = func
 end
 
-glamp('blank', function (delta) end)
+function blank(delta)
+end
 
 require 'rainbow'
+-- require 'bubble'
+
+
+glamp('blank')
+glamp('rainbow')
+glamp('rainbow_cycle')
+glamp('bubble')
+
+currentFunc = rainbow_cycle
 
 local lastTime = tmr.now()
-local currentTime
+local currentTime, success, message
 tmr.alarm(0, 50, 1, function()
   currentTime = tmr.now()
   currentFunc(currentTime - lastTime)
