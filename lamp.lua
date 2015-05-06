@@ -1,8 +1,10 @@
 local LPD8806 = require('LPD8806')
 
-local led_count = 16
-local lpd = LPD8806.new(led_count, 3, 4)
+led_count = 16
+lpd = LPD8806.new(led_count, 3, 4)
 lpd:show()
+
+require 'rainbow'
 
 -- Input a value 0 to 384 to get an rgb color value.
 function wheel(wheelPos)
@@ -24,47 +26,6 @@ function wheel(wheelPos)
   return r, g, b
 end
 
-local rainbowDelay   = 50;
-local rainbowOffset  = 0;
-local rainbowTimeout = 0;
-function rainbowCycle(delta)
-  local i, j;
-
-  rainbowTimeout = rainbowTimeout + delta
-  if rainbowTimeout > rainbowDelay then
-    rainbowTimeout = rainbowTimeout - rainbowDelay
-    rainbowOffset = rainbowOffset + 1
-    if rainbowOffset > 384 then
-      rainbowOffset = 0
-    end
-
-    for i=0, led_count-1 do
-      lpd:setPixelColor(i, wheel(((i * 384 / led_count) + rainbowOffset) % 384))
-    end
-
-    lpd:show() -- write all the pixels out
-  end
-end
-
-function rainbow(delta)
-  local i
-
-  rainbowTimeout = rainbowTimeout + delta
-  if rainbowTimeout > rainbowDelay then
-    rainbowTimeout = rainbowTimeout - rainbowDelay
-    rainbowOffset = rainbowOffset + 1
-    if rainbowOffset > 384 then
-      rainbowOffset = 0
-    end
-    for i=0, led_count-1 do
-      lpd:setPixelColor(i, wheel( (i + rainbowOffset) % 384))
-    end
-    lpd:show()
-  end
-end
-
-function blank(delta)
-end
 
 local currentFunc = rainbowCycle
 local commands = {'blank', 'rainbow', 'rainbowCycle'}
