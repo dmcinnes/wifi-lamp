@@ -41,7 +41,7 @@ function server:cmd(name, func)
 end
 
 function server:receiver(conn, payload)
-  local query, path, headers, total, expect
+  local query, path, headers, expect
 
   if payload:match("^PUT") or payload:match("^POST") then
     query, path, headers = self:parseHeaders(payload)
@@ -50,7 +50,7 @@ function server:receiver(conn, payload)
 
     expect = headers["Expect"]
     if expect and expect:match("^100") then
-      total = tonumber(headers["Content-Length"])
+      self.total = tonumber(headers["Content-Length"])
       file.open(self.filename, 'w')
       self:response(conn, '100 Continue')
     else
@@ -70,8 +70,8 @@ function server:receiver(conn, payload)
     end
   else
     file.write(payload)
-    total = total - payload:len()
-    if total <= 0 then
+    self.total = self.total - payload:len()
+    if self.total <= 0 then
       file.flush()
       file.close()
       -- clear out some memory
