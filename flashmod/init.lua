@@ -1,0 +1,5 @@
+uart.setup(0,921600,8,0,1,1)
+tmr.alarm(0,1000,0,function()
+	dofile("flashmodule.lc")
+	dofile("LLbin.lc")
+end)

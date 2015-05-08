@@ -1,9 +1,11 @@
-local S = {}
-local Server = S
+local server = {MOD_NAME = 'server'}
 
-S.commands = {}
+function server:init(file)
+  self.file = file
+  self.commands = {}
+end
 
-function S.parseHeaders(payload)
+function server:parseHeaders(payload)
   local headers = {}
   local query = false
   local path, header, value
@@ -20,78 +22,74 @@ function S.parseHeaders(payload)
   return query, path, headers
 end
 
-function S.response(conn, code)
+function server:response(conn, code)
   print(code)
   conn:send("HTTP/1.1 "..code.."\r\n")
 end
 
-function S.ok(conn)
-  S.response(conn, '200 OK')
+function server:ok(conn)
+  self:response(conn, '200 OK')
 end
 
-function S.close(conn)
+function server:close(conn)
   conn:on("sent", function(conn)
     conn:close()
   end)
 end
 
-function S.cmd(name, func)
-  S.commands[name] = func
+function server:cmd(name, func)
+  self.commands[name] = func
 end
 
-S.server = net.createServer(net.TCP)
-S.server:listen(80, function(conn)
-  local query, path, headers, total, filename, expect
+function server:receiver(conn, payload)
+  local query, path, headers, total, expect
 
-  conn:on("receive", function(conn, payload)
-    if payload:match("^PUT") or payload:match("^POST") then
-      query, path, headers = S.parseHeaders(payload)
-      filename = path:gsub('^/', '')
-      print("Request: "..query)
+  if payload:match("^PUT") or payload:match("^POST") then
+    query, path, headers = self:parseHeaders(payload)
+    self.filename = path:gsub('^/', '')
+    print("Request: "..query)
 
-      expect = headers["Expect"]
-      if expect and expect:match("^100") then
-        total = tonumber(headers["Content-Length"])
-        file.open(filename, 'w')
-        S.response(conn, '100 Continue')
-      else
-        -- it's POST
-        if S.commands[filename] then
-          success, message = pcall(S.commands[filename])
-          if success then
-            S.ok(conn)
-          else
-            S.response(conn, '500 Server Error')
-            conn:send(message..'\r\n')
-          end
-        else
-          S.response(conn, '404 Not Found')
-        end
-        S.close(conn)
-      end
+    expect = headers["Expect"]
+    if expect and expect:match("^100") then
+      total = tonumber(headers["Content-Length"])
+      self.file.open(filename, 'w')
+      self:response(conn, '100 Continue')
     else
-      file.write(payload)
-      total = total - payload:len()
-      if total <= 0 then
-        file.flush()
-        file.close()
-        -- clear out some memory
-        payload = nil
-        headers = nil
-        collectgarbage()
-        success, message = pcall(node.compile, filename)
+      -- it's POST
+      if self.commands[filename] then
+        success, message = pcall(self.commands[filename])
         if success then
-          S.response(conn, '201 Created')
-          -- remove the souce file to save room
-          file.remove(filename)
+          self:ok(conn)
         else
-          S.response(conn, '422 Unprocessable Entity')
-          conn:send('\r\nCompile Failed: '..message..'\r\n')
+          self:response(conn, '500 Server Error')
+          conn:send(message..'\r\n')
         end
-        S.close(conn)
+      else
+        self:response(conn, '404 Not Found')
       end
+      self:close(conn)
     end
-  end)
-end)
+  else
+    self.file.write(payload)
+    total = total - payload:len()
+    if total <= 0 then
+      self.file.flush()
+      self.file.close()
+      -- clear out some memory
+      payload = nil
+      collectgarbage()
+      success, message = pcall(node.compile, self.filename)
+      if success then
+        self:response(conn, '201 Created')
+        -- remove the souce file to save room
+        self.file.remove(filename)
+      else
+        self:response(conn, '422 Unprocessable Entity')
+        conn:send('\r\nCompile Failed: '..message..'\r\n')
+      end
+      self:close(conn)
+    end
+  end
+end
 
-return Server
+flashMod(server)

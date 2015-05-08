@@ -1,11 +1,11 @@
-Server  = require 'server'
-require 'commands'
+dofile('flashmod.lc')
+dofile('LLbin.lc')
 
-if not file.list()['program'] then
-  -- insurance policy
-  file.open('program', 'w')
-  file.close()
-  require 'lamp'
-end
-
-file.remove('program')
+local server = flashMod("server")
+server:init(file)
+local tcp = net.createServer(net.TCP)
+tcp:listen(80, function(conn)
+  conn:on("receive", function(conn, payload)
+    server:receiver(conn, payload)
+  end)
+end)

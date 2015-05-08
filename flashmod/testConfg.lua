@@ -1,0 +1,5 @@
+print("start", node.heap())
+config = flashMod("config")
+print("before", node.heap())
+wifi.sta.getap(function(t) config.ListAP(t) end)
+print("after", node.heap())
