@@ -1,7 +1,6 @@
 local server = {MOD_NAME = 'server'}
 
-function server:init(file)
-  self.file = file
+function server:init()
   self.commands = {}
 end
 
@@ -52,12 +51,12 @@ function server:receiver(conn, payload)
     expect = headers["Expect"]
     if expect and expect:match("^100") then
       total = tonumber(headers["Content-Length"])
-      self.file.open(filename, 'w')
+      file.open(self.filename, 'w')
       self:response(conn, '100 Continue')
     else
       -- it's POST
-      if self.commands[filename] then
-        success, message = pcall(self.commands[filename])
+      if self.commands[self.filename] then
+        success, message = pcall(self.commands[self.filename])
         if success then
           self:ok(conn)
         else
@@ -70,11 +69,11 @@ function server:receiver(conn, payload)
       self:close(conn)
     end
   else
-    self.file.write(payload)
+    file.write(payload)
     total = total - payload:len()
     if total <= 0 then
-      self.file.flush()
-      self.file.close()
+      file.flush()
+      file.close()
       -- clear out some memory
       payload = nil
       collectgarbage()
@@ -82,7 +81,7 @@ function server:receiver(conn, payload)
       if success then
         self:response(conn, '201 Created')
         -- remove the souce file to save room
-        self.file.remove(filename)
+        file.remove(self.filename)
       else
         self:response(conn, '422 Unprocessable Entity')
         conn:send('\r\nCompile Failed: '..message..'\r\n')
