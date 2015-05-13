@@ -60,8 +60,9 @@ function server:receiver(conn, payload)
         if success then
           self:ok(conn)
         else
-          self:response(conn, '500 Server Error')
+          print('ERROR: '..message)
           conn:send(message..'\r\n')
+          self:response(conn, '500 Server Error')
         end
       else
         self:response(conn, '404 Not Found')
