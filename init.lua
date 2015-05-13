@@ -1,11 +1,13 @@
 dofile('flashmod.lc')
 dofile('LLbin.lc')
 
-local server = flashMod("server")
+server = flashMod("server")
 server:init()
-local tcp = net.createServer(net.TCP)
+tcp = net.createServer(net.TCP)
 tcp:listen(80, function(conn)
   conn:on("receive", function(conn, payload)
     server:receiver(conn, payload)
   end)
 end)
+
+dofile('commands.lc')
