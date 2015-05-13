@@ -1,14 +1,23 @@
-local rainbowDelay   = 50;
-local rainbowOffset  = 0;
-local rainbowTimeout = 0;
+local lamp = {MOD_NAME = 'lamp'}
 
-function rainbow_cycle(delta)
-  rainbowTimeout = rainbowTimeout + delta
+function lamp:rainbow_init()
+  self.rainbowDelay   = 50;
+  self.rainbowOffset  = 0;
+  self.rainbowTimeout = 0;
+end
+
+function lamp:rainbow_cycle(lpd, delta)
+  local rainbowDelay   = self.rainbowDelay;
+  local rainbowOffset  = self.rainbowOffset;
+  local rainbowTimeout = self.rainbowTimeout;
+  local led_count      = lpd.led_count;
+
+  self.rainbowTimeout = rainbowTimeout + delta
   if rainbowTimeout > rainbowDelay then
-    rainbowTimeout = rainbowTimeout - rainbowDelay
-    rainbowOffset = rainbowOffset + 1
+    self.rainbowTimeout = rainbowTimeout - rainbowDelay
+    self.rainbowOffset = rainbowOffset + 1
     if rainbowOffset > 384 then
-      rainbowOffset = 0
+      self.rainbowOffset = 0
     end
 
     for i=0, led_count-1 do
@@ -19,13 +28,17 @@ function rainbow_cycle(delta)
   end
 end
 
-function rainbow(delta)
-  rainbowTimeout = rainbowTimeout + delta
+function lamp:rainbow(lpd, delta)
+  local rainbowDelay   = self.rainbowDelay;
+  local rainbowOffset  = self.rainbowOffset;
+  local rainbowTimeout = self.rainbowTimeout;
+
+  self.rainbowTimeout = rainbowTimeout + delta
   if rainbowTimeout > rainbowDelay then
-    rainbowTimeout = rainbowTimeout - rainbowDelay
-    rainbowOffset = rainbowOffset + 1
+    self.rainbowTimeout = rainbowTimeout - rainbowDelay
+    self.rainbowOffset = rainbowOffset + 1
     if rainbowOffset > 384 then
-      rainbowOffset = 0
+      self.rainbowOffset = 0
     end
     for i=0, led_count-1 do
       lpd:setPixelColor(i, wheel( (i + rainbowOffset) % 384))
@@ -33,3 +46,5 @@ function rainbow(delta)
     lpd:show()
   end
 end
+
+flashMod(lamp)
