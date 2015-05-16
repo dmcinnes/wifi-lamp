@@ -75,18 +75,7 @@ function server:receiver(conn, payload)
     if self.total <= 0 then
       file.flush()
       file.close()
-      -- clear out some memory
-      payload = nil
-      collectgarbage()
-      success, message = pcall(node.compile, self.filename)
-      if success then
-        self:response(conn, '201 Created')
-        -- remove the souce file to save room
-        file.remove(self.filename)
-      else
-        self:response(conn, '422 Unprocessable Entity')
-        conn:send('\r\nCompile Failed: '..message..'\r\n')
-      end
+      self:response(conn, '201 Created')
       self:close(conn)
     end
   end
