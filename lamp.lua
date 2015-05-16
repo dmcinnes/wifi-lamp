@@ -1,11 +1,20 @@
-local LPD8806 = require('LPD8806')
+local lamp = {MOD_NAME = 'lamp'}
 
-led_count = 16
-lpd = LPD8806.new(led_count, 3, 4)
-lpd:show()
+function lamp:init(server, LPD8806)
+  self.server = server
+
+  self.led_count = 16
+  self.lpd = LPD8806.new(led_count, 3, 4)
+  self.lpd:show()
+
+  self.currentFunc = lamp:blank
+
+  self.lastTime    = tmr.now()
+  self.currentTime = nil
+end
 
 -- Input a value 0 to 384 to get an rgb color value.
-function wheel(wheelPos)
+function lamp:wheel(wheelPos)
   local r, g, b
   local switch = wheelPos / 128
   if switch == 0 then
@@ -24,38 +33,35 @@ function wheel(wheelPos)
   return r, g, b
 end
 
-function clear()
-  for i=0, led_count-1 do
+function lamp:clear(lpd)
+  for i=0, lpd.led_count-1 do
     lpd:setPixelColor(i, 0, 0, 0)
   end
   lpd:show()
 end
 
-function glamp(name)
-  Server.cmd(name, function()
-    clear()
-    currentFunc = _G[name]
+function lamp:glamp(name, func)
+  lamp.server.cmd(name, function()
+    lamp:clear()
+    currentFunc = func
   end)
 end
 
-function blank(delta)
+function lamp:blank(delta)
 end
 
-require 'rainbow'
--- require 'bubble'
+function lamp:runner()
+  self.currentTime = tmr.now()
+  self.currentFunc(self.currentTime - self.lastTime)
+  self.lastTime = self.currentTime
+end
 
+function lamp:run()
+  tmr.alarm(0, 50, 1, function()
+    currentTime = tmr.now()
+    currentFunc(currentTime - lastTime)
+    lastTime = currentTime
+  end)
+end
 
-glamp('blank')
-glamp('rainbow')
-glamp('rainbow_cycle')
-glamp('bubble')
-
-currentFunc = rainbow_cycle
-
-local lastTime = tmr.now()
-local currentTime, success, message
-tmr.alarm(0, 50, 1, function()
-  currentTime = tmr.now()
-  currentFunc(currentTime - lastTime)
-  lastTime = currentTime
-end)
+flashMod(lamp)
