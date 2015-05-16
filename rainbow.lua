@@ -4,9 +4,9 @@ function rainbow:init(lamp)
   self.rainbowDelay   = 50
   self.rainbowOffset  = 0
   self.rainbowTimeout = 0
-  self.wheel          = lamp:wheel
-  lamp:glamp('rainbow')
-  lamp:glamp('rainbow_cycle')
+  self.wheel          = lamp.wheel
+  -- lamp:glamp('rainbow', self)
+  -- lamp:glamp('rainbow_cycle', self)
 end
 
 function rainbow:rainbow_cycle(lpd, delta)

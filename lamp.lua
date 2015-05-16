@@ -4,10 +4,11 @@ function lamp:init(server, LPD8806)
   self.server = server
 
   self.led_count = 16
-  self.lpd = LPD8806.new(led_count, 3, 4)
+  self.lpd = LPD8806.new(self.led_count, 3, 4)
   self.lpd:show()
 
-  self.currentFunc = lamp:blank
+  self.currentFunc = self.blank
+  self.currentThis = self
 
   self.lastTime    = tmr.now()
   self.currentTime = nil
@@ -34,34 +35,41 @@ function lamp:wheel(wheelPos)
 end
 
 function lamp:clear(lpd)
+  local lpd = self.lpd
   for i=0, lpd.led_count-1 do
     lpd:setPixelColor(i, 0, 0, 0)
   end
   lpd:show()
 end
 
-function lamp:glamp(name, func)
-  lamp.server.cmd(name, function()
-    lamp:clear()
-    currentFunc = func
-  end)
+function lamp:glamp(name, this)
+  -- generate function
+  cmd = (function(lamp, endpoint, container)
+    return function ()
+      lamp:clear()
+      lamp.currentFunc = container[endpoint]
+      lamp.currentThis = container
+    end
+  end)(self, name, this)
+
+  self.server:cmd(name, cmd)
 end
 
 function lamp:blank(delta)
 end
 
-function lamp:runner()
+function lamp:run()
   self.currentTime = tmr.now()
-  self.currentFunc(self.currentTime - self.lastTime)
+  self.currentFunc(currentThis, self.currentTime - self.lastTime)
   self.lastTime = self.currentTime
 end
 
-function lamp:run()
-  tmr.alarm(0, 50, 1, function()
-    currentTime = tmr.now()
-    currentFunc(currentTime - lastTime)
-    lastTime = currentTime
-  end)
-end
+-- function lamp:run()
+--   tmr.alarm(0, 50, 1, function()
+--     currentTime = tmr.now()
+--     currentFunc(currentTime - lastTime)
+--     lastTime = currentTime
+--   end)
+-- end
 
 flashMod(lamp)
