@@ -42,17 +42,12 @@ function lamp:clear(lpd)
   lpd:show()
 end
 
-function lamp:glamp(name, this)
-  -- generate function
-  cmd = (function(lamp, endpoint, container)
-    return function ()
-      lamp:clear()
-      lamp.currentFunc = container[endpoint]
-      lamp.currentThis = container
-    end
-  end)(self, name, this)
-
-  self.server:cmd(name, cmd)
+function lamp:glamp(name)
+  local lamp = self
+  self.server:cmd(name, function ()
+    lamp:clear()
+    lamp.currentFunc = name
+  end)
 end
 
 function lamp:blank(delta)
@@ -60,7 +55,7 @@ end
 
 function lamp:run()
   self.currentTime = tmr.now()
-  self.currentFunc(currentThis, self.currentTime - self.lastTime)
+  self[self.currentFunc](self, self.currentTime - self.lastTime)
   self.lastTime = self.currentTime
 end
 

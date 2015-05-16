@@ -1,19 +1,23 @@
 local rainbow = {MOD_NAME = 'rainbow'}
 
 function rainbow:init(lamp)
-  self.rainbowDelay   = 50
-  self.rainbowOffset  = 0
-  self.rainbowTimeout = 0
-  self.wheel          = lamp.wheel
-  -- lamp:glamp('rainbow', self)
-  -- lamp:glamp('rainbow_cycle', self)
+  lamp.rainbowDelay   = 50
+  lamp.rainbowOffset  = 0
+  lamp.rainbowTimeout = 0
+  lamp:glamp('rainbow')
+  lamp:glamp('rainbow_cycle')
 end
 
-function rainbow:rainbow_cycle(lpd, delta)
+flashMod(rainbow)
+
+local lamp = {MOD_NAME = 'lamp'}
+
+function lamp:rainbow_cycle(delta)
   local rainbowDelay   = self.rainbowDelay
   local rainbowOffset  = self.rainbowOffset
   local rainbowTimeout = self.rainbowTimeout
   local wheel          = self.wheel
+  local lpd            = self.lpd
   local led_count      = lpd.led_count
 
   self.rainbowTimeout = rainbowTimeout + delta
@@ -32,11 +36,12 @@ function rainbow:rainbow_cycle(lpd, delta)
   end
 end
 
-function rainbow:rainbow(lpd, delta)
+function lamp:rainbow(delta)
   local rainbowDelay   = self.rainbowDelay
   local rainbowOffset  = self.rainbowOffset
   local rainbowTimeout = self.rainbowTimeout
   local wheel          = self.wheel
+  local lpd            = self.lpd
   local led_count      = lpd.led_count
 
   self.rainbowTimeout = rainbowTimeout + delta
@@ -53,4 +58,4 @@ function rainbow:rainbow(lpd, delta)
   end
 end
 
-flashMod(rainbow)
+flashMod(lamp)
