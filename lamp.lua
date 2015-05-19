@@ -7,8 +7,7 @@ function lamp:init(server, LPD8806)
   self.lpd = LPD8806.new(self.led_count, 3, 4)
   self.lpd:show()
 
-  self.currentFunc = self.blank
-  self.currentThis = self
+  self.currentFunc = function(delta) end
 
   self.lastTime    = tmr.now()
   self.currentTime = nil
@@ -53,9 +52,6 @@ function lamp:glamp(name)
     collectgarbage()
     lamp.currentFunc = lamp[name]
   end)
-end
-
-function lamp:blank(delta)
 end
 
 function lamp:run()
