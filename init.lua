@@ -1,5 +1,4 @@
 dofile('flashmod.lc')
-dofile('LLbin.lc')
 
 server = flashMod('server')
 server:init()
@@ -21,5 +20,9 @@ LPD8806.new         = nil
 LPD8806.setup       = nil
 LPD8806.resetCursor = nil
 
+flashMod('rainbow'):init(lamp)
 
--- flashMod('rainbow'):init(lamp)
+runner = lamp.run
+tmr.alarm(0, 50, 1, function()
+  runner(lamp)
+end)
