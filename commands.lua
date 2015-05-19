@@ -8,6 +8,6 @@ server:cmd('telnet', function ()
   tmr.alarm(0, 100, 0, function ()
     -- need to close web server for this
     tcp:close()
-    require 'telnet'
+    dofile('telnet.lua')
   end)
 end)
