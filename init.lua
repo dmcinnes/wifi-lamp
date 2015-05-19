@@ -16,4 +16,10 @@ LPD8806 = dofile('LPD8806.lc')
 lamp = flashMod('lamp')
 lamp:init(server, LPD8806)
 
+-- clear up some space
+LPD8806.new         = nil
+LPD8806.setup       = nil
+LPD8806.resetCursor = nil
+
+
 -- flashMod('rainbow'):init(lamp)
