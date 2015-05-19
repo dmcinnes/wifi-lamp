@@ -12,6 +12,9 @@ function lamp:init(server, LPD8806)
 
   self.lastTime    = tmr.now()
   self.currentTime = nil
+
+  -- pre-load wheel
+  self.wheel = self.wheel
 end
 
 -- Input a value 0 to 384 to get an rgb color value.
@@ -46,7 +49,9 @@ function lamp:glamp(name)
   local lamp = self
   self.server:cmd(name, function ()
     lamp:clear()
-    lamp.currentFunc = name
+    lamp.currentFunc = nil
+    collectgarbage()
+    lamp.currentFunc = lamp[name]
   end)
 end
 
@@ -55,7 +60,7 @@ end
 
 function lamp:run()
   self.currentTime = tmr.now()
-  self[self.currentFunc](self, self.currentTime - self.lastTime)
+  self.currentFunc(self, self.currentTime - self.lastTime)
   self.lastTime = self.currentTime
 end
 

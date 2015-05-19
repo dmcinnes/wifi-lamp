@@ -29,7 +29,7 @@ function lamp:rainbow_cycle(delta)
     end
 
     for i=0, led_count-1 do
-      lpd:setPixelColor(i, wheel(((i * 384 / led_count) + rainbowOffset) % 384))
+      lpd:setPixelColor(i, wheel(self, ((i * 384 / led_count) + rainbowOffset) % 384))
     end
 
     lpd:show() -- write all the pixels out
@@ -52,7 +52,7 @@ function lamp:rainbow(delta)
       self.rainbowOffset = 0
     end
     for i=0, led_count-1 do
-      lpd:setPixelColor(i, wheel( (i + rainbowOffset) % 384))
+      lpd:setPixelColor(i, wheel(self, (i + rainbowOffset) % 384))
     end
     lpd:show()
   end

@@ -16,5 +16,4 @@ LPD8806 = dofile('LPD8806.lc')
 lamp = flashMod('lamp')
 lamp:init(server, LPD8806)
 
--- rainbow = flashMod('rainbow')
--- rainbow:init(lamp)
+-- flashMod('rainbow'):init(lamp)
