@@ -3,8 +3,7 @@ local lamp = {MOD_NAME = 'lamp'}
 function lamp:init(server, LPD8806)
   self.server = server
 
-  self.led_count = 16
-  self.lpd = LPD8806.new(self.led_count, 3, 4)
+  self.lpd = LPD8806.new(16, 3, 4)
   self.lpd:show()
 
   self:glamp('blank')
