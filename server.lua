@@ -55,6 +55,7 @@ function server:receiver(conn, payload)
       self:response(conn, '100 Continue')
     else
       -- it's POST
+      self:close(conn)
       if self.commands[self.filename] then
         success, message = pcall(self.commands[self.filename])
         if success then
@@ -67,7 +68,6 @@ function server:receiver(conn, payload)
       else
         self:response(conn, '404 Not Found')
       end
-      self:close(conn)
     end
   else
     file.write(payload)
@@ -75,8 +75,8 @@ function server:receiver(conn, payload)
     if self.total <= 0 then
       file.flush()
       file.close()
-      self:response(conn, '201 Created')
       self:close(conn)
+      self:response(conn, '201 Created')
     end
   end
 end
