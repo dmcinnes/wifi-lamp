@@ -7,7 +7,8 @@ function lamp:init(server, LPD8806)
   self.lpd = LPD8806.new(self.led_count, 3, 4)
   self.lpd:show()
 
-  self.currentFunc = function(delta) end
+  self:glamp('blank')
+  self.currentFunc = self.blank
 
   self.lastTime    = tmr.now()
   self.currentTime = nil
@@ -42,6 +43,9 @@ function lamp:clear(lpd)
     lpd:setPixelColor(i, 0, 0, 0)
   end
   lpd:show()
+end
+
+function lamp:blank(delta)
 end
 
 function lamp:glamp(name)
