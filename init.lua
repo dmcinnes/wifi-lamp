@@ -21,6 +21,7 @@ LPD8806.setup       = nil
 LPD8806.resetCursor = nil
 
 flashMod('rainbow'):init(lamp)
+flashMod('bubble'):init(lamp)
 
 runner = lamp.run
 tmr.alarm(0, 50, 1, function()
