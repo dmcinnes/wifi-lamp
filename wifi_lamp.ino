@@ -28,17 +28,32 @@ void setupServer() {
     server.send(200, "text/plain", "Hello from esp8266!");
   });
 
+  server.on("/off", HTTP_POST, [](){
+    clear();
+    currentLampAction = &none;
+    OK();
+  });
+
+  server.on("/blobs", HTTP_POST, [](){
+    clear();
+    currentLampAction = &blobs;
+    OK();
+  });
+
   server.on("/bubble", HTTP_POST, [](){
+    clear();
     currentLampAction = &bubble;
     OK();
   });
 
   server.on("/rainbow", HTTP_POST, [](){
+    clear();
     currentLampAction = &rainbow;
     OK();
   });
 
   server.on("/rainbow-cycle", HTTP_POST, [](){
+    clear();
     currentLampAction = &rainbowCycle;
     OK();
   });
@@ -83,7 +98,7 @@ void setup(void) {
   lastMillis = millis();
   randomSeed(analogRead(0));
 
-  currentLampAction = &rainbowCycle;
+  currentLampAction = &blobs;
 }
 
 // Input a value 0 to 384 to get a color value.
@@ -134,7 +149,7 @@ void bubble(unsigned long delta) {
       }
       if (led < LED_COUNT) {
         color = strip.getPixelColor(led) & 0x7f;
-        strip.setPixelColor(led, 0, 0, color + 20);
+        strip.setPixelColor(led, 0, 0, color + 50);
         bubbleLeds[i] = led + 1;
       } else {
         // reset
@@ -192,6 +207,60 @@ void rainbowCycle(unsigned long delta) {
     }
     strip.show();   // write all the pixels out
   }
+}
+
+const unsigned int blobCount = 3;
+const unsigned int blobDelay = 60;
+unsigned int blobTimeout = 0;
+int blobList[] = {0, 0, 0};
+void blobs(unsigned long delta) {
+  bool show = false;
+  int dir, color, blobLed;
+  unsigned int i, j, led;
+
+  blobTimeout += delta;
+  if (blobTimeout > blobDelay) {
+    blobTimeout = 0;
+    for (i = 0; i < blobCount; i++) {
+      if (blobList[i] == 0) {
+        blobList[i] = random(1, LED_COUNT+1);
+      }
+      dir = (blobList[i] < 0) ? -1 : 1;
+      led = dir * blobList[i] - 1;
+      for (j = 0; j < 3; j++) {
+        blobLed = led + j - 1;
+        if (blobLed >= 0 && blobLed < LED_COUNT) {
+          color = strip.getPixelColor(blobLed) & 0x7f;
+          color += (dir * ((j == 1) ? 10 : 1));
+          if (color < 0) {
+            color = 0;
+            if (j == 1) {
+              // end
+              blobList[i] = 0;
+            }
+          } else if (color > 127) {
+            color = 127;
+            if (j == 1) {
+              // reverse
+              blobList[i] = -blobList[i];
+            }
+          }
+          strip.setPixelColor(blobLed, 0, 0, color);
+          show = true;
+        }
+      }
+    }
+    if (show) {
+      strip.show();
+    }
+  }
+}
+
+void clear() {
+  for (unsigned int i=0; i < LED_COUNT; i++) {
+    strip.setPixelColor(i, 0);
+  }
+  strip.show();
 }
 
 void none(unsigned long delta) {
