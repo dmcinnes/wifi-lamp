@@ -210,20 +210,23 @@ void rainbowCycle(unsigned long delta) {
 }
 
 const unsigned int blobCount = 3;
-const unsigned int blobDelay = 60;
-unsigned int blobTimeout = 0;
-int blobList[] = {0, 0, 0};
+unsigned int blobUpdateOn[] = {0, 0, 0};
+unsigned int blobTimers[] = {0, 0, 0};
+int blobList[]   = {0, 0, 0};
 void blobs(unsigned long delta) {
   bool show = false;
   int dir, color, blobLed;
   unsigned int i, j, led;
 
-  blobTimeout += delta;
-  if (blobTimeout > blobDelay) {
-    blobTimeout = 0;
-    for (i = 0; i < blobCount; i++) {
+  for (i = 0; i < blobCount; i++) {
+    blobTimers[i] += delta;
+    if (blobTimers[i] > blobUpdateOn[i]) {
+      blobTimers[i] = blobTimers[i] - blobUpdateOn[i];
+
       if (blobList[i] == 0) {
         blobList[i] = random(1, LED_COUNT+1);
+        blobTimers[i] = 0;
+        blobUpdateOn[i] = random(60, 100);
       }
       dir = (blobList[i] < 0) ? -1 : 1;
       led = dir * blobList[i] - 1;
@@ -232,13 +235,13 @@ void blobs(unsigned long delta) {
         if (blobLed >= 0 && blobLed < LED_COUNT) {
           color = strip.getPixelColor(blobLed) & 0x7f;
           color += (dir * ((j == 1) ? 10 : 1));
-          if (color < 0) {
+          if (color <= 0) {
             color = 0;
             if (j == 1) {
               // end
               blobList[i] = 0;
             }
-          } else if (color > 127) {
+          } else if (color >= 127) {
             color = 127;
             if (j == 1) {
               // reverse
@@ -250,9 +253,9 @@ void blobs(unsigned long delta) {
         }
       }
     }
-    if (show) {
-      strip.show();
-    }
+  }
+  if (show) {
+    strip.show();
   }
 }
 
