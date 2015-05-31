@@ -1,3 +1,4 @@
+#include <Math.h>
 #include <SPI.h>
 #include <LPD8806.h>
 #include <ESP8266WiFi.h>
@@ -19,7 +20,7 @@ unsigned long lastMillis;
 
 LPD8806 strip = LPD8806(LED_COUNT, DATA_PIN, CLOCK_PIN);
 
-void OK() {
+void sendOK() {
   server.send(200, "text/plain", "OK");
 }
 
@@ -31,31 +32,31 @@ void setupServer() {
   server.on("/off", HTTP_POST, [](){
     clear();
     currentLampAction = &none;
-    OK();
+    sendOK();
   });
 
   server.on("/blobs", HTTP_POST, [](){
     clear();
     currentLampAction = &blobs;
-    OK();
+    sendOK();
   });
 
   server.on("/bubble", HTTP_POST, [](){
     clear();
     currentLampAction = &bubble;
-    OK();
+    sendOK();
   });
 
   server.on("/rainbow", HTTP_POST, [](){
     clear();
     currentLampAction = &rainbow;
-    OK();
+    sendOK();
   });
 
   server.on("/rainbow-cycle", HTTP_POST, [](){
     clear();
     currentLampAction = &rainbowCycle;
-    OK();
+    sendOK();
   });
 
   server.on("/red", HTTP_POST, [](){
@@ -64,7 +65,7 @@ void setupServer() {
     }
     strip.show();
     currentLampAction = &none;
-    OK();
+    sendOK();
   });
 }
 
@@ -210,49 +211,61 @@ void rainbowCycle(unsigned long delta) {
 }
 
 const unsigned int blobCount = 3;
-unsigned int blobUpdateOn[] = {0, 0, 0};
-unsigned int blobTimers[] = {0, 0, 0};
-int blobList[]   = {0, 0, 0};
+unsigned int blobColors[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+float blobOffsets[]       = {0.0, 1.0, 2.0};
+unsigned int blobIndex[]  = {0, 0, 0};
+float blobAngle = 0;
+const unsigned int blobDelay = 60;
+unsigned int blobTimeout = 0;
 void blobs(unsigned long delta) {
   bool show = false;
-  int dir, color, blobLed;
-  unsigned int i, j, led;
+  int blobLed;
+  unsigned int i, j, led, r, g, b, colorScale;
+  float scale;
+
+  blobAngle += PI * delta / 2000.0;
+  if (blobAngle > 2 * PI) {
+    blobAngle -= 2 * PI;
+  }
+
+  blobTimeout += delta;
+  if (blobTimeout < blobDelay) {
+    return;
+  }
+  blobTimeout -= blobDelay;
+
+  scale = (sin(blobAngle) + 1)/2.0;
 
   for (i = 0; i < blobCount; i++) {
-    blobTimers[i] += delta;
-    if (blobTimers[i] > blobUpdateOn[i]) {
-      blobTimers[i] = blobTimers[i] - blobUpdateOn[i];
+    if (blobIndex[i] == 0) {
+      blobIndex[i] = random(1, LED_COUNT+1);
+      blobOffsets[i] = 2 * PI * random(100) / 100.0;
+      r = random(127);
+      g = random(127);
+      b = random(127);
+      // scale up to the brightest
+      // colorScale = 127 - max(max(r, g), b);
+      colorScale = 127 - ((r > g) ? ((r > b) ? r : b) : ((g > b) ? g : b));
+      blobColors[3*i]   = r + colorScale;
+      blobColors[3*i+1] = g + colorScale;
+      blobColors[3*i+2] = b + colorScale;
+    }
+    led = blobIndex[i] - 1;
 
-      if (blobList[i] == 0) {
-        blobList[i] = random(1, LED_COUNT+1);
-        blobTimers[i] = 0;
-        blobUpdateOn[i] = random(60, 100);
-      }
-      dir = (blobList[i] < 0) ? -1 : 1;
-      led = dir * blobList[i] - 1;
-      for (j = 0; j < 3; j++) {
-        blobLed = led + j - 1;
-        if (blobLed >= 0 && blobLed < LED_COUNT) {
-          color = strip.getPixelColor(blobLed) & 0x7f;
-          color += (dir * ((j == 1) ? 10 : 1));
-          if (color <= 0) {
-            color = 0;
-            if (j == 1) {
-              // end
-              blobList[i] = 0;
-            }
-          } else if (color >= 127) {
-            color = 127;
-            if (j == 1) {
-              // reverse
-              blobList[i] = -blobList[i];
-            }
-          }
-          strip.setPixelColor(blobLed, 0, 0, color);
-          show = true;
+    /* for (j = 0; j < 3; j++) { */
+    /*   blobLed = led + j - 1; */
+      blobLed = led;
+      if (blobLed >= 0 && blobLed < LED_COUNT) {
+        r = byte(blobColors[3*i]   * scale);
+        g = byte(blobColors[3*i+1] * scale);
+        b = byte(blobColors[3*i+2] * scale);
+        strip.setPixelColor(blobLed, r, g, b);
+        show = true;
+        if (r == 0 && g == 0 && b == 0) {
+          blobIndex[i] = 0;
         }
       }
-    }
+    /* } */
   }
   if (show) {
     strip.show();
