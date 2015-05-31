@@ -220,7 +220,7 @@ unsigned int blobTimeout = 0;
 void blobs(unsigned long delta) {
   bool show = false;
   int blobLed;
-  unsigned int i, j, led, r, g, b, colorScale;
+  unsigned int i, j, led, r, g, b, WheelPos;
   float scale;
 
   blobAngle += PI * delta / 2000.0;
@@ -240,15 +240,27 @@ void blobs(unsigned long delta) {
     if (blobIndex[i] == 0) {
       blobIndex[i] = random(1, LED_COUNT+1);
       blobOffsets[i] = 2 * PI * random(100) / 100.0;
-      r = random(127);
-      g = random(127);
-      b = random(127);
-      // scale up to the brightest
-      // colorScale = 127 - max(max(r, g), b);
-      colorScale = 127 - ((r > g) ? ((r > b) ? r : b) : ((g > b) ? g : b));
-      blobColors[3*i]   = r + colorScale;
-      blobColors[3*i+1] = g + colorScale;
-      blobColors[3*i+2] = b + colorScale;
+      WheelPos = random(385);
+      switch(WheelPos / 128) {
+        case 0:
+          r = 127 - WheelPos % 128; // Red down
+          g = WheelPos % 128;       // Green up
+          b = 0;                    // blue off
+          break;
+        case 1:
+          g = 127 - WheelPos % 128; // green down
+          b = WheelPos % 128;       // blue up
+          r = 0;                    // red off
+          break;
+        case 2:
+          b = 127 - WheelPos % 128; // blue down
+          r = WheelPos % 128;       // red up
+          g = 0;                    // green off
+          break;
+      }
+      blobColors[3*i]   = r;
+      blobColors[3*i+1] = g;
+      blobColors[3*i+2] = b;
     }
     led = blobIndex[i] - 1;
 
