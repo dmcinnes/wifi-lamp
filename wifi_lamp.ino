@@ -218,10 +218,9 @@ float blobAngle = 0;
 const unsigned int blobDelay = 60;
 unsigned int blobTimeout = 0;
 void blobs(unsigned long delta) {
-  bool show = false;
   int blobLed;
   unsigned int i, j, led, r, g, b, WheelPos;
-  float scale;
+  float scale, blobScale;
 
   blobAngle += PI * delta / 2000.0;
   if (blobAngle > 2 * PI) {
@@ -235,6 +234,11 @@ void blobs(unsigned long delta) {
   blobTimeout -= blobDelay;
 
   scale = (sin(blobAngle) + 1)/2.0;
+
+  // clear all the pixels
+  for (i = 0; i < LED_COUNT; i++) {
+    strip.setPixelColor(i, 0);
+  }
 
   for (i = 0; i < blobCount; i++) {
     if (blobIndex[i] == 0) {
@@ -264,24 +268,22 @@ void blobs(unsigned long delta) {
     }
     led = blobIndex[i] - 1;
 
-    /* for (j = 0; j < 3; j++) { */
-    /*   blobLed = led + j - 1; */
-      blobLed = led;
+    for (j = 0; j < 3; j++) {
+      blobLed = led + j - 1;
       if (blobLed >= 0 && blobLed < LED_COUNT) {
-        r = byte(blobColors[3*i]   * scale);
-        g = byte(blobColors[3*i+1] * scale);
-        b = byte(blobColors[3*i+2] * scale);
+        blobScale = (j == 1) ? scale : (scale / 10);
+        r = byte(blobColors[3*i]   * blobScale);
+        g = byte(blobColors[3*i+1] * blobScale);
+        b = byte(blobColors[3*i+2] * blobScale);
         strip.setPixelColor(blobLed, r, g, b);
-        show = true;
-        if (r == 0 && g == 0 && b == 0) {
+        if (j == 1 &&
+            r == 0 && g == 0 && b == 0) {
           blobIndex[i] = 0;
         }
       }
-    /* } */
+    }
   }
-  if (show) {
-    strip.show();
-  }
+  strip.show();
 }
 
 void clear() {
