@@ -220,7 +220,7 @@ const unsigned int blobDelay = 50;
 unsigned int blobTimeout = 0;
 void blobs(unsigned long delta) {
   int blobLed;
-  unsigned int i, j, led, r, g, b, WheelPos;
+  unsigned int i, j, led, r, g, b, WheelPos, pixelColor;
   float scale, blobScale;
 
   blobAngle += PI * delta / 3000.0;
@@ -242,9 +242,8 @@ void blobs(unsigned long delta) {
   for (i = 0; i < blobCount; i++) {
     if (blobIndex[i] == 0 && blobWaits[i]-- == 0) {
       blobIndex[i] = random(1, LED_COUNT+1);
-      // set the offset to right now
-      // plus some wiggle room
-      blobOffsets[i] = PI - blobAngle + 0.3;
+      // set the offset to right now plus some wiggle room
+      blobOffsets[i] = PI - blobAngle + 0.25;
       WheelPos = random(385);
       switch(WheelPos / 128) {
         case 0:
@@ -275,11 +274,18 @@ void blobs(unsigned long delta) {
       for (j = 0; j < 3; j++) {
         blobLed = led + j - 1;
         if (blobLed >= 0 && blobLed < LED_COUNT) {
+          pixelColor = strip.getPixelColor(blobLed);
+          r = pixelColor & 0x007f00;
+          g = pixelColor & 0x7f0000;
+          b = pixelColor & 0x00007f;
           // scale down neighbor pixels to 10%
           blobScale = (j == 1) ? scale : (scale / 10);
-          r = byte(blobColors[3*i]   * blobScale);
-          g = byte(blobColors[3*i+1] * blobScale);
-          b = byte(blobColors[3*i+2] * blobScale);
+          r += byte(blobColors[3*i]   * blobScale);
+          g += byte(blobColors[3*i+1] * blobScale);
+          b += byte(blobColors[3*i+2] * blobScale);
+          r = (r > 127) ? 127 : r;
+          g = (g > 127) ? 127 : g;
+          b = (b > 127) ? 127 : b;
           strip.setPixelColor(blobLed, r, g, b);
           if (j == 1 &&
               r == 0 && g == 0 && b == 0) {
