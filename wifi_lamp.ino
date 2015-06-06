@@ -210,11 +210,11 @@ void rainbowCycle(unsigned long delta) {
   }
 }
 
-const unsigned int blobCount = 3;
-unsigned int blobColors[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-float blobOffsets[]       = {0.0, 0.0, 0.0};
-unsigned int blobIndex[]  = {0, 0, 0};
-unsigned int blobWaits[]  = {0, 20, 40};
+const unsigned int blobCount = 5;
+unsigned int blobColors[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+float blobOffsets[]       = {0.0, 0.0, 0.0, 0.0, 0.0};
+unsigned int blobIndex[]  = {0, 0, 0, 0, 0};
+unsigned int blobWaits[]  = {0, 10, 20, 30, 40};
 float blobAngle = 0;
 const unsigned int blobDelay = 30;
 unsigned int blobTimeout = 0;
