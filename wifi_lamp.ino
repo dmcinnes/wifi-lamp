@@ -216,7 +216,7 @@ float blobOffsets[]       = {0.0, 0.0, 0.0};
 unsigned int blobIndex[]  = {0, 0, 0};
 unsigned int blobWaits[]  = {0, 20, 40};
 float blobAngle = 0;
-const unsigned int blobDelay = 50;
+const unsigned int blobDelay = 30;
 unsigned int blobTimeout = 0;
 void blobs(unsigned long delta) {
   int blobLed;
@@ -279,13 +279,10 @@ void blobs(unsigned long delta) {
           g = pixelColor & 0x7f0000;
           b = pixelColor & 0x00007f;
           // scale down neighbor pixels to 10%
-          blobScale = (j == 1) ? scale : (scale / 10);
-          r += byte(blobColors[3*i]   * blobScale);
-          g += byte(blobColors[3*i+1] * blobScale);
-          b += byte(blobColors[3*i+2] * blobScale);
-          r = (r > 127) ? 127 : r;
-          g = (g > 127) ? 127 : g;
-          b = (b > 127) ? 127 : b;
+          blobScale = (j == 1) ? scale : (scale / 5);
+          r += byte(blobColors[3*i]   * blobScale) / 2;
+          g += byte(blobColors[3*i+1] * blobScale) / 2;
+          b += byte(blobColors[3*i+2] * blobScale) / 2;
           strip.setPixelColor(blobLed, r, g, b);
           if (j == 1 &&
               r == 0 && g == 0 && b == 0) {
