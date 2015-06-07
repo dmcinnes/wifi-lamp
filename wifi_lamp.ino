@@ -213,15 +213,14 @@ void rainbowCycle(unsigned long delta) {
 const unsigned int blobCount = 5;
 unsigned int blobColors[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 float blobOffsets[]       = {0.0, 0.0, 0.0, 0.0, 0.0};
-unsigned int blobIndex[]  = {0, 0, 0, 0, 0};
+float blobIndex[]         = {0.0, 0.0, 0.0, 0.0, 0.0};
 unsigned int blobWaits[]  = {0, 10, 20, 30, 40};
 float blobAngle = 0;
 const unsigned int blobDelay = 30;
 unsigned int blobTimeout = 0;
 void blobs(unsigned long delta) {
-  int blobLed;
-  unsigned int i, j, led, r, g, b, WheelPos, pixelColor;
-  float scale, blobScale;
+  unsigned int i, j, ledStart, r, g, b, WheelPos;
+  float scale, blobScale, percent;
 
   blobAngle += PI * delta / 3000.0;
   if (blobAngle > 2 * PI) {
@@ -241,7 +240,7 @@ void blobs(unsigned long delta) {
 
   for (i = 0; i < blobCount; i++) {
     if (blobIndex[i] == 0 && blobWaits[i]-- == 0) {
-      blobIndex[i] = random(1, LED_COUNT+1);
+      blobIndex[i] = float(random(1, LED_COUNT+1));
       // set the offset to right now plus some wiggle room
       blobOffsets[i] = PI - blobAngle + 0.25;
       WheelPos = random(385);
@@ -266,34 +265,43 @@ void blobs(unsigned long delta) {
       blobColors[3*i+1] = g;
       blobColors[3*i+2] = b;
     } else if (blobIndex[i] > 0) {
-      led = blobIndex[i] - 1;
+      blobIndex[i] += 0.1;
+
+      ledStart = int(blobIndex[i] - 2);
 
       // scale from 0-1
       scale = (cos(blobAngle + blobOffsets[i]) + 1)/2.0;
 
-      for (j = 0; j < 3; j++) {
-        blobLed = led + j - 1;
-        if (blobLed >= 0 && blobLed < LED_COUNT) {
-          pixelColor = strip.getPixelColor(blobLed);
-          r = pixelColor & 0x007f00;
-          g = pixelColor & 0x7f0000;
-          b = pixelColor & 0x00007f;
-          // scale down neighbor pixels to 10%
-          blobScale = (j == 1) ? scale : (scale / 5);
-          r += byte(blobColors[3*i]   * blobScale) / 2;
-          g += byte(blobColors[3*i+1] * blobScale) / 2;
-          b += byte(blobColors[3*i+2] * blobScale) / 2;
-          strip.setPixelColor(blobLed, r, g, b);
-          if (j == 1 &&
-              r == 0 && g == 0 && b == 0) {
-            blobIndex[i] = 0;
-            blobWaits[i] = random(10, 50);
-          }
-        }
+      percent = blobIndex[i] - int(blobIndex[i]);
+
+      // ends
+      blobPixel(i, ledStart-1, scale * (1-percent));
+      blobPixel(i, ledStart+1, scale * percent);
+
+      // middle
+      if (blobPixel(i, ledStart, scale)) {
+        // back down to zero, generate new blob
+        blobIndex[i] = 0;
+        blobWaits[i] = random(10, 50);
       }
     }
   }
   strip.show();
+}
+
+bool blobPixel(unsigned int i, unsigned int blobLed, float percent) {
+  unsigned int pixelColor, r, g, b;
+  if (blobLed >= 0 && blobLed < LED_COUNT) {
+    pixelColor = strip.getPixelColor(blobLed);
+    r = pixelColor & 0x007f00;
+    g = pixelColor & 0x7f0000;
+    b = pixelColor & 0x00007f;
+    r += byte(blobColors[3*i]   * percent) / 2;
+    g += byte(blobColors[3*i+1] * percent) / 2;
+    b += byte(blobColors[3*i+2] * percent) / 2;
+    strip.setPixelColor(blobLed, r, g, b);
+    return ( r == 0 && g == 0 && b == 0);
+  }
 }
 
 void clear() {
