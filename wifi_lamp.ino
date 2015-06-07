@@ -265,7 +265,7 @@ void blobs(unsigned long delta) {
       blobColors[3*i+1] = g;
       blobColors[3*i+2] = b;
     } else if (blobIndex[i] > 0) {
-      blobIndex[i] += 0.1;
+      blobIndex[i] += 0.02;
 
       ledStart = int(blobIndex[i] - 2);
 
