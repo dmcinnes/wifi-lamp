@@ -214,6 +214,7 @@ const unsigned int blobCount = 5;
 unsigned int blobColors[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 float blobOffsets[]       = {0.0, 0.0, 0.0, 0.0, 0.0};
 float blobIndex[]         = {0.0, 0.0, 0.0, 0.0, 0.0};
+float blobSpeed[]         = {0.0, 0.0, 0.0, 0.0, 0.0};
 unsigned int blobWaits[]  = {0, 10, 20, 30, 40};
 float blobAngle = 0;
 const unsigned int blobDelay = 30;
@@ -241,6 +242,7 @@ void blobs(unsigned long delta) {
   for (i = 0; i < blobCount; i++) {
     if (blobIndex[i] == 0 && blobWaits[i]-- == 0) {
       blobIndex[i] = float(random(1, LED_COUNT+1));
+      blobSpeed[i] = float(random(100)) / 5000.0;
       // set the offset to right now plus some wiggle room
       blobOffsets[i] = PI - blobAngle + 0.25;
       WheelPos = random(385);
@@ -265,7 +267,7 @@ void blobs(unsigned long delta) {
       blobColors[3*i+1] = g;
       blobColors[3*i+2] = b;
     } else if (blobIndex[i] > 0) {
-      blobIndex[i] += 0.02;
+      blobIndex[i] += blobSpeed[i];
 
       ledStart = int(blobIndex[i] - 2);
 
