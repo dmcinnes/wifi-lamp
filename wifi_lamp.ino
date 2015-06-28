@@ -59,6 +59,12 @@ void setupServer() {
     sendOK();
   });
 
+  server.on("/chase", HTTP_POST, [](){
+    clear();
+    currentLampAction = &chase;
+    sendOK();
+  });
+
   server.on("/red", HTTP_POST, [](){
     for (unsigned int i=0; i < LED_COUNT; i++) {
       strip.setPixelColor(i, wheel(0));
@@ -303,6 +309,53 @@ bool blobPixel(unsigned int i, unsigned int blobLed, float percent) {
     b += byte(blobColors[3*i+2] * percent) / 2;
     strip.setPixelColor(blobLed, r, g, b);
     return ( r == 0 && g == 0 && b == 0);
+  }
+}
+
+void setWrap(int idx, int r, int g, int b) {
+  int endIndex = idx;
+  if (idx < 0) {
+    endIndex = LED_COUNT + idx;
+  } else if (idx > LED_COUNT - 1) {
+    endIndex = idx - LED_COUNT;
+  }
+  strip.setPixelColor(endIndex, r, g, b);
+}
+
+const unsigned int chaseDelay = 70;
+unsigned int chaseTimeout = 0;
+unsigned int chaseState = 0;
+unsigned int chaseColor[] = {0, 0, 128};
+void chase(unsigned long delta) {
+
+  chaseTimeout += delta;
+  if (chaseTimeout < chaseDelay) {
+    return;
+  }
+  chaseTimeout -= chaseDelay;
+
+  int i;
+  unsigned int r = chaseColor[0];
+  unsigned int g = chaseColor[1];
+  unsigned int b = chaseColor[2];
+
+  // clear all the pixels
+  for (i = 0; i < LED_COUNT; i++) {
+    strip.setPixelColor(i, 0);
+  }
+
+  i = chaseState;
+  setWrap(i-5, r/32, g/32, b/32);
+  setWrap(i-4, r/16, g/16, b/16);
+  setWrap(i-3, r/8, g/8, b/8);
+  setWrap(i-2, r/4, g/4, b/4);
+  setWrap(i-1, r/2, g/2, b/2);
+  setWrap(i, r, g, b );
+  strip.show();
+
+  chaseState = chaseState + 1;
+  if (chaseState == LED_COUNT) {
+    chaseState = 0;
   }
 }
 
