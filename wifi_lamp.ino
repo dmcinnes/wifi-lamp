@@ -45,6 +45,7 @@ void setupServer() {
 
   server.on("/bubble", HTTP_POST, [](){
     clear();
+    setColorFromArgs();
     currentLampAction = &bubble;
     sendOK();
   });
