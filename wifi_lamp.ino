@@ -227,7 +227,7 @@ const unsigned int blobDelay = 30;
 unsigned int blobTimeout = 0;
 void blobs(unsigned long delta) {
   unsigned int i, j, ledStart, r, g, b, WheelPos;
-  float scale, blobScale, percent;
+  float scale, blobScale, percent, nextBlob;
 
   blobAngle += PI * delta / 3000.0;
   if (blobAngle > 2 * PI) {
@@ -247,7 +247,17 @@ void blobs(unsigned long delta) {
 
   for (i = 0; i < blobCount; i++) {
     if (blobIndex[i] == 0 && blobWaits[i]-- == 0) {
-      blobIndex[i] = float(random(1, LED_COUNT+1));
+      // don't double up blobs
+      while (blobIndex[i] == 0) {
+        nextBlob = float(random(1, LED_COUNT+1));
+        for (j = 0; j < blobCount; j++) {
+          if (blobIndex[i] == nextBlob) {
+            nextBlob = 0;
+            break;
+          }
+        }
+        blobIndex[i] = nextBlob;
+      }
       blobSpeed[i] = float(random(100)) / 5000.0;
       // set the offset to right now plus some wiggle room
       blobOffsets[i] = PI - blobAngle + 0.25;
