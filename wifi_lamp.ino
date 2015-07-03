@@ -258,7 +258,7 @@ void blobs(unsigned long delta) {
         }
         blobIndex[i] = nextBlob;
       }
-      blobSpeed[i] = float(random(100)) / 5000.0;
+      blobSpeed[i] = float(random(1, 100)) / 5000.0;
       // set the offset to right now plus some wiggle room
       blobOffsets[i] = PI - blobAngle + 0.25;
       WheelPos = random(385);
