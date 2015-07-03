@@ -20,6 +20,8 @@ unsigned long lastMillis;
 
 LPD8806 strip = LPD8806(LED_COUNT, DATA_PIN, CLOCK_PIN);
 
+byte R, G, B;
+
 void sendOK() {
   server.send(200, "text/plain", "OK");
 }
@@ -61,13 +63,27 @@ void setupServer() {
 
   server.on("/chase", HTTP_POST, [](){
     clear();
+    setColorFromArgs();
     currentLampAction = &chase;
     sendOK();
   });
 
   server.on("/red", HTTP_POST, [](){
+    R = 127;
+    G = 0;
+    B = 0;
     for (unsigned int i=0; i < LED_COUNT; i++) {
-      strip.setPixelColor(i, wheel(0));
+      strip.setPixelColor(i, R, G, B);
+    }
+    strip.show();
+    currentLampAction = &none;
+    sendOK();
+  });
+
+  server.on("/color", HTTP_POST, [](){
+    setColorFromArgs();
+    for (unsigned int i=0; i < LED_COUNT; i++) {
+      strip.setPixelColor(i, R, G, B);
     }
     strip.show();
     currentLampAction = &none;
@@ -76,6 +92,11 @@ void setupServer() {
 }
 
 void setup(void) {
+  // default solid color
+  R = 0;
+  G = 0;
+  B = 128;
+
   Serial.begin(115200);
 
   // Connect to WiFi network
@@ -139,7 +160,7 @@ unsigned int bubbleTimers[]   = {0, 0, 0, 0, 0};
 unsigned int bubbleLeds[]     = {0, 0, 0, 0, 0};
 void bubble(unsigned long delta) {
   bool show = false;
-  unsigned int i, led, color;
+  unsigned int i, led;
 
   for (i = 0; i < bubbleCount; i++) {
     if (bubbleUpdateOn[i] == 0) {
@@ -155,8 +176,7 @@ void bubble(unsigned long delta) {
         strip.setPixelColor(led - 1, 0, 0, 0);
       }
       if (led < LED_COUNT) {
-        color = strip.getPixelColor(led) & 0x7f;
-        strip.setPixelColor(led, 0, 0, color + 50);
+        strip.setPixelColor(led, R, G, B);
         bubbleLeds[i] = led + 1;
       } else {
         // reset
@@ -335,7 +355,6 @@ void setWrap(int idx, int r, int g, int b) {
 const unsigned int chaseDelay = 70;
 unsigned int chaseTimeout = 0;
 unsigned int chaseState = 0;
-unsigned int chaseColor[] = {0, 0, 128};
 void chase(unsigned long delta) {
 
   chaseTimeout += delta;
@@ -345,9 +364,6 @@ void chase(unsigned long delta) {
   chaseTimeout -= chaseDelay;
 
   int i;
-  unsigned int r = chaseColor[0];
-  unsigned int g = chaseColor[1];
-  unsigned int b = chaseColor[2];
 
   // clear all the pixels
   for (i = 0; i < LED_COUNT; i++) {
@@ -355,12 +371,12 @@ void chase(unsigned long delta) {
   }
 
   i = chaseState;
-  setWrap(i-5, r/32, g/32, b/32);
-  setWrap(i-4, r/16, g/16, b/16);
-  setWrap(i-3, r/8, g/8, b/8);
-  setWrap(i-2, r/4, g/4, b/4);
-  setWrap(i-1, r/2, g/2, b/2);
-  setWrap(i, r, g, b );
+  setWrap(i-5, R/32, G/32, B/32);
+  setWrap(i-4, R/16, G/16, B/16);
+  setWrap(i-3, R/8,  G/8,  B/8);
+  setWrap(i-2, R/4,  G/4,  B/4);
+  setWrap(i-1, R/2,  G/2,  B/2);
+  setWrap(i,   R,    G,    B);
   strip.show();
 
   chaseState = chaseState + 1;
@@ -374,6 +390,21 @@ void clear() {
     strip.setPixelColor(i, 0);
   }
   strip.show();
+}
+
+void setColorFromArgs() {
+  for (uint8_t i=0; i<server.args(); i++){
+    Serial.println(" NAME:"+server.argName(i) + "\n VALUE:" + server.arg(i));
+  }
+  if (server.hasArg("r")) {
+    R = server.arg("r").toInt();
+  }
+  if (server.hasArg("g")) {
+    G = server.arg("g").toInt();
+  }
+  if (server.hasArg("b")) {
+    B = server.arg("b").toInt();
+  }
 }
 
 void none(unsigned long delta) {
