@@ -127,7 +127,7 @@ void setup(void) {
   lastMillis = millis();
   randomSeed(analogRead(0));
 
-  currentLampAction = &blobs;
+  currentLampAction = &rainbowCycle;
 }
 
 // Input a value 0 to 384 to get a color value.
