@@ -31,6 +31,11 @@ void setupServer() {
     server.send(200, "text/plain", "Hello from esp8266!");
   });
 
+  server.on("/restart", HTTP_POST, [](){
+    sendOK();
+    ESP.reset();
+  });
+
   server.on("/off", HTTP_POST, [](){
     clear();
     currentLampAction = &none;
