@@ -16,6 +16,11 @@ ESP8266WebServer server(80);
 #define DATA_PIN  0
 #define CLOCK_PIN 2
 
+#define ENDPOINT_COUNT 8
+
+String body;
+String endpoints[ENDPOINT_COUNT] = {"restart", "off", "blobs", "bubble", "rainbow", "rainbow-cycle", "chase", "red"};
+
 unsigned long lastMillis;
 
 LPD8806 strip = LPD8806(LED_COUNT, DATA_PIN, CLOCK_PIN);
@@ -27,8 +32,18 @@ void sendOK() {
 }
 
 void setupServer() {
+  body = "<html><body>";
+  for (unsigned int i = 0; i < ENDPOINT_COUNT; i++) {
+    body += "<form action=\"/";
+    body += endpoints[i];
+    body += "\" method=\"POST\"><input type=\"submit\" value=\"";
+    body += endpoints[i];
+    body += "\"/></form>";
+  }
+  body += "</body></html>";
+
   server.on("/", []() {
-    server.send(200, "text/plain", "Hello from esp8266!");
+    server.send(200, "text/html", body);
   });
 
   server.on("/restart", HTTP_POST, [](){
